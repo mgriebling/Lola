@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		2F20576F1BBF0132006E9E61 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F20576E1BBF0132006E9E61 /* main.swift */; };
+		2F2057761BBF0161006E9E61 /* LSB.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F2057751BBF0161006E9E61 /* LSB.swift */; settings = {ASSET_TAGS = (); }; };
+		2F2057781BBF0C59006E9E61 /* String+Char.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F2057771BBF0C59006E9E61 /* String+Char.swift */; settings = {ASSET_TAGS = (); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -25,6 +27,8 @@
 /* Begin PBXFileReference section */
 		2F20576B1BBF0132006E9E61 /* Lola */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Lola; sourceTree = BUILT_PRODUCTS_DIR; };
 		2F20576E1BBF0132006E9E61 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = main.swift; sourceTree = "<group>"; };
+		2F2057751BBF0161006E9E61 /* LSB.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LSB.swift; sourceTree = "<group>"; };
+		2F2057771BBF0C59006E9E61 /* String+Char.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "String+Char.swift"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -58,6 +62,8 @@
 			isa = PBXGroup;
 			children = (
 				2F20576E1BBF0132006E9E61 /* main.swift */,
+				2F2057751BBF0161006E9E61 /* LSB.swift */,
+				2F2057771BBF0C59006E9E61 /* String+Char.swift */,
 			);
 			path = Lola;
 			sourceTree = "<group>";
@@ -88,6 +94,7 @@
 		2F2057631BBF0132006E9E61 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				LastSwiftUpdateCheck = 0700;
 				LastUpgradeCheck = 0700;
 				ORGANIZATIONNAME = "Solinst Canada";
 				TargetAttributes = {
@@ -119,6 +126,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				2F20576F1BBF0132006E9E61 /* main.swift in Sources */,
+				2F2057781BBF0C59006E9E61 /* String+Char.swift in Sources */,
+				2F2057761BBF0161006E9E61 /* LSB.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -206,13 +215,18 @@
 		2F2057731BBF0132006E9E61 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
 		};
 		2F2057741BBF0132006E9E61 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_MODULES = YES;
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -236,6 +250,7 @@
 				2F2057741BBF0132006E9E61 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
