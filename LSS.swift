@@ -1,5 +1,8 @@
 import Foundation
 
+func == (lhs: LSS.Symbols, rhs: LSS.Symbols) -> Bool { return lhs.rawValue == rhs.rawValue }
+func < (lhs: LSS.Symbols, rhs: LSS.Symbols) -> Bool { return lhs.rawValue < rhs.rawValue }
+
 class LSS {
     /* MG 17.8.2014, NW 16.10.93 / 7.11.96 / 21.10.97 */
     //	IMPORT Out, Files;
@@ -14,27 +17,20 @@ class LSS {
     typealias BOOLEAN = Bool
     
     /* symbols */
-    static var null : SHORTINT = 0;
-    static var not : SHORTINT = 1; static var exp : SHORTINT = 2; static var log : SHORTINT = 3;
-    static var times : SHORTINT = 4; static var div : SHORTINT = 5; static var mod : SHORTINT = 6;
-    static var plus : SHORTINT = 7; static var minus : SHORTINT = 8;
-    static var eql : SHORTINT = 10; static var neq : SHORTINT = 11; static var lss : SHORTINT = 12;
-    static var leq : SHORTINT = 13; static var gtr : SHORTINT = 14; static var geq : SHORTINT = 15;
-    static var period : SHORTINT = 18; static var comma : SHORTINT = 19; static var colon : SHORTINT = 20;
-    static var rparen : SHORTINT = 22; static var rbrak : SHORTINT = 23;
-    static var then : SHORTINT = 24; static var Do : SHORTINT = 25; static var to : SHORTINT = 26;
-    static var lparen : SHORTINT = 27; static var lbrak : SHORTINT = 28; static var becomes : SHORTINT = 29; static var pos : SHORTINT = 30;
-    static var ident : SHORTINT = 31; static var number : SHORTINT = 32; static var zero : SHORTINT = 33; static var one : SHORTINT = 34;
-    static var reg : SHORTINT = 35; static var latch : SHORTINT = 36; static var sr : SHORTINT = 37; static var mux : SHORTINT = 38;
-    static var bar : SHORTINT = 39;
-    static var semicolon : SHORTINT = 40; static var end : SHORTINT = 41; static var Else : SHORTINT = 42;
-    static var elsif : SHORTINT = 43; static var If : SHORTINT = 44; static var For : SHORTINT = 45;
-    static var clock : SHORTINT = 46; static var reset : SHORTINT = 47;
-    static var integer : SHORTINT = 48; static var bit : SHORTINT = 49; static var ts : SHORTINT = 50;
-    static var oc : SHORTINT = 51; static var type : SHORTINT = 52; static var In : SHORTINT = 53; static var Inout : SHORTINT = 54;
-    static var out : SHORTINT = 55; static var spos : SHORTINT = 56; static var const : SHORTINT = 57;
-    static var Var : SHORTINT = 58; static var begin : SHORTINT = 59; static var Import : SHORTINT = 60;
-    static var module : SHORTINT = 61; static var eof : SHORTINT = 62
+    enum Symbols : SHORTINT, Comparable {
+        case null = 0,
+        not = 1, exp = 2, log = 3,
+        times = 4, div = 5, mod = 6, plus = 7, minus = 8,
+        eql = 10, neq = 11, lss = 12, leq = 13, gtr = 14, geq = 15,
+        period = 18, comma = 19, colon = 20, rparen = 22, rbrak = 23,
+        then = 24, Do = 25, to = 26,
+        lparen = 27, lbrak = 28, becomes = 29, pos = 30,
+        ident = 31, number = 32, zero = 33, one = 34,
+        reg = 35, latch = 36, sr = 37, mux = 38, bar = 39,
+        semicolon = 40, end = 41, Else = 42, elsif = 43, If = 44, For = 45, clock = 46, reset = 47,
+        integer = 48, bit = 49, ts = 50, oc = 51, type = 52, In = 53, Inout = 54,
+        out = 55, spos = 56, const = 57, Var = 58, begin = 59, Import = 60, module = 61, eof = 62
+    }
     
     typealias Ident = String
     
@@ -49,12 +45,12 @@ class LSS {
     static var errpos: LONGINT = 0
     static var R: Files.File?
     static var key: [String] = []
-    static var symno: [SHORTINT] = []
+    static var symno: [Symbols] = []
     
     static func Mark (num: INTEGER) {
         var fpos: LONGINT;
         
-        fpos = Files.Tell(R);
+        fpos = Files.Tell(R!);
         if fpos > errpos+2 {
             print("*** ERROR: \(errors[num])")
             print("    Line = \(line); pos = \(chpos)")
@@ -64,12 +60,12 @@ class LSS {
     } // Mark;
     
     static func Read (inout ch: CHAR) {
-        if Files.Eof(R) { ch = "\0" } //;
-        ch = Files.ReadChar(R); chpos++
+        if Files.Eof(R!) { ch = "\0" } //;
+        ch = Files.ReadChar(R!); chpos++
         if (ch == EOL) { line++; chpos = 1 } 
     } // Read;
     
-    static func Get (inout sym: SHORTINT) {
+    static func Get (inout sym: Symbols) {
         
         func Ident() {
             var i: INTEGER;
@@ -85,7 +81,7 @@ class LSS {
             if i == IdLen {
                 Mark(2)
             }
-            sym = LSS.ident
+            sym = LSS.Symbols.ident
         } // Ident;
         
         func SearchKey () {
@@ -99,7 +95,7 @@ class LSS {
         } // SearchKey;
         
         func Number () {
-            val = 0; sym = LSS.number
+            val = 0; sym = LSS.Symbols.number
             repeat {
                 if val <= (LONGINT.max - ch.unicodeValue() + Character("0").unicodeValue()) / 10 {
                     val = 10 * val + ch.unicodeValue() - Character("0").unicodeValue()
@@ -117,70 +113,70 @@ class LSS {
                         if ch == "*" { comment() } //
                     } // ;
                     if ch == "*" { Read(&ch); break } // ;
-                    if Files.Eof(R) { break } // ;
+                    if Files.Eof(R!) { break } // ;
                     Read(&ch)
                 } while true
                 if ch == ")" { Read(&ch); break } // ;
-                if Files.Eof(R) { Mark(8); break } //
+                if Files.Eof(R!) { Mark(8); break } //
             } while true
         } // comment;
         
         
-        while (ch <= " ") && (!Files.Eof(R)) { Read(&ch) }
+        while (ch <= " ") && (!Files.Eof(R!)) { Read(&ch) }
         /* if Files.Eof(R) { sym = eof; RETURN } //; */
         switch ch {
         case "'":
             Read(&ch);
             if ch == "0" {
-                sym = LSS.zero
+                sym = LSS.Symbols.zero
             } else {
-                sym = LSS.one;
+                sym = LSS.Symbols.one;
                 if ch != "1" { Mark(9) } //
             }
             Read(&ch)
         case "*":
-            Read(&ch); sym = LSS.times
+            Read(&ch); sym = LSS.Symbols.times
         case "+":
-            Read(&ch); sym = LSS.plus
+            Read(&ch); sym = LSS.Symbols.plus
         case "-":
             Read(&ch);
-            if ch == ">" { Read(&ch); sym = LSS.bar } else { sym = LSS.minus } //
+            if ch == ">" { Read(&ch); sym = LSS.Symbols.bar } else { sym = LSS.Symbols.minus } //
         case "=":
-            Read(&ch); sym = LSS.eql
+            Read(&ch); sym = LSS.Symbols.eql
         case "#":
-            Read(&ch); sym = LSS.neq
+            Read(&ch); sym = LSS.Symbols.neq
         case "<":
             Read(&ch);
-            if ch == "=" { Read(&ch); sym = LSS.leq } else { sym = LSS.lss } //
+            if ch == "=" { Read(&ch); sym = LSS.Symbols.leq } else { sym = LSS.Symbols.lss } //
         case ">":
             Read(&ch);
-            if ch == "=" { Read(&ch); sym = LSS.geq } else { sym = LSS.gtr } //
+            if ch == "=" { Read(&ch); sym = LSS.Symbols.geq } else { sym = LSS.Symbols.gtr } //
         case ";":
-            Read(&ch); sym = LSS.semicolon
+            Read(&ch); sym = LSS.Symbols.semicolon
         case ",":
-            Read(&ch); sym = LSS.comma
+            Read(&ch); sym = LSS.Symbols.comma
         case ":":
             Read(&ch);
-            if ch == "=" { Read(&ch); sym = LSS.becomes
-            } else if  ch == ":" { Read(&ch); sym = LSS.pos
-            } else { sym = LSS.colon
+            if ch == "=" { Read(&ch); sym = LSS.Symbols.becomes
+            } else if  ch == ":" { Read(&ch); sym = LSS.Symbols.pos
+            } else { sym = LSS.Symbols.colon
             } //
         case "." :
             Read(&ch);
-            if ch == "." { Read(&ch); sym = LSS.to } else { sym = LSS.period } //
+            if ch == "." { Read(&ch); sym = LSS.Symbols.to } else { sym = LSS.Symbols.period } //
         case "/":
-            Read(&ch); sym = LSS.div
+            Read(&ch); sym = LSS.Symbols.div
         case  "(":
             Read(&ch);
-            if ch == "*" { comment(); Get(&sym) } else { sym = LSS.lparen } //
+            if ch == "*" { comment(); Get(&sym) } else { sym = LSS.Symbols.lparen } //
         case ")":
-            Read(&ch); sym = LSS.rparen
+            Read(&ch); sym = LSS.Symbols.rparen
         case "[":
-            Read(&ch); sym = LSS.lbrak
+            Read(&ch); sym = LSS.Symbols.lbrak
         case "]":
-            Read(&ch); sym = LSS.rbrak
+            Read(&ch); sym = LSS.Symbols.rbrak
         case  "^":
-            Read(&ch); sym = LSS.null
+            Read(&ch); sym = LSS.Symbols.null
         case "0"..."9":
             Number()
         case "A"..."Z":
@@ -188,47 +184,47 @@ class LSS {
         case "a"..."z":
             Ident()
         case  "|":
-            Read(&ch); sym = LSS.bar
+            Read(&ch); sym = LSS.Symbols.bar
         case "~":
-            Read(&ch); sym = LSS.not
-        default: Read(&ch); sym = LSS.null
+            Read(&ch); sym = LSS.Symbols.not
+        default: Read(&ch); sym = LSS.Symbols.null
         } //
     } // Get;
 
     static func Init (fname: String) {
         error = false; errpos = 0; chpos = 1; line = 1; R = Files.Open(fname, mode:"r"); Read(&ch)
         K = 0;
-        Enter("", LSS.begin);
-        Enter("BIT", LSS.bit);
-        Enter("CLOCK", LSS.clock);
-        Enter("CONST", LSS.const);
-        Enter("DIV", LSS.div);
-        Enter("DO", LSS.Do);
-        Enter("ELSE", LSS.Else);
-        Enter("ELSIF", LSS.elsif);
-        Enter("END", LSS.end);
-        Enter("EXP", LSS.exp);
-        Enter("FOR", LSS.For);
-        Enter("IF", LSS.If);
-        Enter("IMPORT", LSS.Import);
-        Enter("IN", LSS.In);
-        Enter("INOUT", LSS.Inout);
-        Enter("LATCH", LSS.latch);
-        Enter("LOG", LSS.log);
-        Enter("MOD", LSS.mod);
-        Enter("MODULE", LSS.module);
-        Enter("MUX", LSS.mux);
-        Enter("OC", LSS.oc);
-        Enter("OUT", LSS.out);
-        Enter("POS", LSS.spos);
-        Enter("REG", LSS.reg);
-        Enter("RESET", LSS.reset);
-        Enter("SR", LSS.sr);
-        Enter("THEN", LSS.then);
-        Enter("TO", LSS.to);
-        Enter("TS", LSS.ts);
-        Enter("TYPE", LSS.type);
-        Enter("VAR", LSS.Var);
+        Enter("BEGIN", LSS.Symbols.begin);
+        Enter("BIT", LSS.Symbols.bit);
+        Enter("CLOCK", LSS.Symbols.clock);
+        Enter("CONST", LSS.Symbols.const);
+        Enter("DIV", LSS.Symbols.div);
+        Enter("DO", LSS.Symbols.Do);
+        Enter("ELSE", LSS.Symbols.Else);
+        Enter("ELSIF", LSS.Symbols.elsif);
+        Enter("END", LSS.Symbols.end);
+        Enter("EXP", LSS.Symbols.exp);
+        Enter("FOR", LSS.Symbols.For);
+        Enter("IF", LSS.Symbols.If);
+        Enter("IMPORT", LSS.Symbols.Import);
+        Enter("IN", LSS.Symbols.In);
+        Enter("INOUT", LSS.Symbols.Inout);
+        Enter("LATCH", LSS.Symbols.latch);
+        Enter("LOG", LSS.Symbols.log);
+        Enter("MOD", LSS.Symbols.mod);
+        Enter("MODULE", LSS.Symbols.module);
+        Enter("MUX", LSS.Symbols.mux);
+        Enter("OC", LSS.Symbols.oc);
+        Enter("OUT", LSS.Symbols.out);
+        Enter("POS", LSS.Symbols.spos);
+        Enter("REG", LSS.Symbols.reg);
+        Enter("RESET", LSS.Symbols.reset);
+        Enter("SR", LSS.Symbols.sr);
+        Enter("THEN", LSS.Symbols.then);
+        Enter("TO", LSS.Symbols.to);
+        Enter("TS", LSS.Symbols.ts);
+        Enter("TYPE", LSS.Symbols.type);
+        Enter("VAR", LSS.Symbols.Var);
         key.append("~ ")
         
         AddError(0, "undefined identifier");
@@ -279,7 +275,7 @@ class LSS {
         AddError(49, "illegal TS-assignment to a non-bus");
     } // Init;
     
-    static func Enter(word: String, _ val: SHORTINT) {
+    static func Enter(word: String, _ val: Symbols) {
        key.append(word); symno.append(val)
     } // Enter;
     

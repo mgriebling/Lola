@@ -1,0 +1,10 @@
+MODULE Counter;
+	CONST N := 4;
+	VAR Q, c:[N]BIT;
+BEGIN
+	Q.0 := REG(~Q.0); c.0 := Q.0;
+	FOR i := 1 .. N-1 DO
+		Q.i := REG(Q.i - c[i-1]);
+		c.i := Q.i * c[i-1];
+	END
+END Counter.

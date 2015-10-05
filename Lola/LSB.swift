@@ -88,7 +88,7 @@ class LSB {
         z.fct = f; z.x = x; z.y = y; return z
 	}
 
-    static func NewVar (f: SHORTINT, _ val: SHORTINT, _ x: Signal?, _ y: Signal?, _ next: Variable, _ name: String) -> Variable {
+    static func NewVar (f: SHORTINT, _ val: SHORTINT, _ x: Signal?, _ y: Signal?, _ next: Variable?, _ name: String) -> Variable {
 		let v = Variable(name: name)
         v.fct = f; v.val = val; v.x = x; v.y = y; v.u = -1; v.v = -1;
 		v.next = next; return v

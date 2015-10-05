@@ -53,7 +53,7 @@ class Lola {
         var v, tempscope: LSB.Variable;
         var x, el, y: LSB.Variable?
         form = typ.tag;
-		v = LSB.NewVar(form, LSB.black, nil, anc, link!, id); v.classv = SHORTINT(mode) - LSC.var0
+		v = LSB.NewVar(form, LSB.black, nil, anc, link, id); v.classv = SHORTINT(mode) - LSC.var0
 		if form == LSB.array {
 			len = V(typ.b); v.val = SHORTINT(len); el = nil;
 			while len > 0 { len--; el = NewVar(typ.a!, mode, null, el, v); Index(len, &el!.name) } // ;
@@ -62,13 +62,13 @@ class Lola {
 			v.name = id; el = nil;
 			ap = typ.b; fp = (typ.a!.a as! LSC.Object)
 			while ap != nil { 
-				el = LSB.NewVar(LSB.integer, SHORTINT(V(ap!.a)), nil, v, el!, fp!.name); fp = fp!.next; ap = ap!.b
+				el = LSB.NewVar(LSB.integer, SHORTINT(V(ap!.a)), nil, v, el, fp!.name); fp = fp!.next; ap = ap!.b
 			}
 			tempscope = scope!; scope = el;
             while fp!.tag == LSC.const {
-				el = LSB.NewVar(LSB.integer, SHORTINT(V(fp!.b)), nil, v, el!, fp!.name); scope = el; fp = fp!.next
+				el = LSB.NewVar(LSB.integer, SHORTINT(V(fp!.b)), nil, v, el, fp!.name); scope = el; fp = fp!.next
 			} // ;
-			while fp !== LSC.guard0 { el = NewVar(fp!.a!, INTEGER(fp!.tag), fp!.name, el!, v); fp = fp!.next } // ;
+			while fp !== LSC.guard0 { el = NewVar(fp!.a!, INTEGER(fp!.tag), fp!.name, el, v); fp = fp!.next } // ;
 			y = nil;  /*invert list*/
 			while el != nil { x = el; el = x!.next; x!.next = y; y = x } // ;
 			scope = tempscope; v.dsc = y
@@ -223,7 +223,7 @@ class Lola {
 			root = LSB.Variable(name: LSC.globalScope.name); root!.fct = LSB.record
 			obj = LSC.localScope.next; new = nil;
 			while (obj !== LSC.guard0) && (obj!.tag == LSC.const) {
-				new = LSB.NewVar(LSB.integer, SHORTINT(V(obj!.b)), nil, nil, new!, obj!.name);
+				new = LSB.NewVar(LSB.integer, SHORTINT(V(obj!.b)), nil, nil, new, obj!.name);
 				scope = new; obj = obj!.next
 			} // ;
 			while obj !== LSC.guard0 {

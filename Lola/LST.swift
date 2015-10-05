@@ -50,7 +50,7 @@ class LST {
     static func Read (inout s : SHORTINT) {
         var c: CHAR;
         
-        c = Files.ReadChar(f)
+        c = Files.ReadChar(f!)
         var si = c.unicodeValue()
         if si > 127 { si -= 256 }
         s = SHORTINT(si)
@@ -60,10 +60,10 @@ class LST {
         /* Read integers in a compressed and portable format. */
         var s: INTEGER; var x: CHAR; var y: INTEGER;
         
-        s=0; y=0; x = Files.ReadChar(f)
+        s=0; y=0; x = Files.ReadChar(f!)
         while x.unicodeValue() >= 128 {
             y += (x.unicodeValue()-128) << s; s += 7
-            x = Files.ReadChar(f)
+            x = Files.ReadChar(f!)
         } //;
         num = y + (x.unicodeValue() % 64 - x.unicodeValue() / 64 * 64) << s
     } // ReadNum;
@@ -74,8 +74,8 @@ class LST {
         
         i = 0; s = ""
         repeat {
-            c = Files.ReadChar(f)
-            if Files.Eof(f) || (c == "\0") { break }
+            c = Files.ReadChar(f!)
+            if Files.Eof(f!) || (c == "\0") { break }
             s.append(c)
             i++
         } while true
@@ -143,27 +143,27 @@ class LST {
             /* read body */
             ReadSignal(&v); LSB.org = (v as! LSB.Variable)
         }
-        Files.Close(f);
+        Files.Close(f!);
     } // Import;
     
     /*----------------- Export --------------------*/
     
     static func Write (s : SHORTINT) {
-        Files.WriteChar(f, ch: Character(Int(s)))
+        Files.WriteChar(f!, ch: s)
     } // Write;
     
     static func WriteNum (var lint: INTEGER) {
         /** Write integers in a compressed and portable format.  */
         
         while (lint < -64) || (lint > 63) {
-            Files.WriteChar(f, ch:Character(lint % 128 + 128));
+            Files.WriteChar(f!, ch:Int8(lint % 128 + 128));
             lint = lint / 128
         } //;
-        Files.WriteChar(f, ch:Character(lint % 128));
+        Files.WriteChar(f!, ch:Int8(lint % 128));
     } // WriteNum;
     
     static func WriteString (s: String) {
-        Files.WriteString(f, s:s); Write(0);
+        Files.WriteString(f!, s:s); Write(0);
     } // WriteString;
     
     static func WriteSignal(x: LSB.Signal?) {
@@ -202,7 +202,7 @@ class LST {
         /* write header and body */
         WriteString(LOLA);
         WriteSignal(LSB.org);
-        Files.Close(f);
+        Files.Close(f!);
     } // Export;
     
 }
