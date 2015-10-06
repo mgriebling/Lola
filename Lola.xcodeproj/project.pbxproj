@@ -15,6 +15,7 @@
 		479ACEEE1BBFFA91000E68D5 /* LSC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 479ACEED1BBFFA91000E68D5 /* LSC.swift */; settings = {ASSET_TAGS = (); }; };
 		479ACEF01BBFFBB9000E68D5 /* LSS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 479ACEEF1BBFFBB9000E68D5 /* LSS.swift */; settings = {ASSET_TAGS = (); }; };
 		47C3C02E1BC274D000E6DA54 /* Lola.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47C3C02D1BC274D000E6DA54 /* Lola.swift */; settings = {ASSET_TAGS = (); }; };
+		47C3C0321BC3D23100E6DA54 /* Simulator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 47C3C0311BC3D23100E6DA54 /* Simulator.swift */; settings = {ASSET_TAGS = (); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -40,6 +41,7 @@
 		479ACEEF1BBFFBB9000E68D5 /* LSS.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = LSS.swift; path = ../LSS.swift; sourceTree = "<group>"; };
 		47C3C02D1BC274D000E6DA54 /* Lola.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Lola.swift; sourceTree = "<group>"; };
 		47C3C02F1BC29E3400E6DA54 /* Counter.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = Counter.txt; sourceTree = "<group>"; };
+		47C3C0311BC3D23100E6DA54 /* Simulator.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Simulator.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -79,6 +81,7 @@
 				479ACEE71BBFDD26000E68D5 /* LST.swift */,
 				479ACEED1BBFFA91000E68D5 /* LSC.swift */,
 				479ACEEF1BBFFBB9000E68D5 /* LSS.swift */,
+				47C3C0311BC3D23100E6DA54 /* Simulator.swift */,
 				479ACEE91BBFE4C3000E68D5 /* String+Char.swift */,
 				47C3C0301BC29E3F00E6DA54 /* Test Inputs */,
 			);
@@ -153,6 +156,7 @@
 				479ACEEE1BBFFA91000E68D5 /* LSC.swift in Sources */,
 				47C3C02E1BC274D000E6DA54 /* Lola.swift in Sources */,
 				479ACEEA1BBFE4C3000E68D5 /* String+Char.swift in Sources */,
+				47C3C0321BC3D23100E6DA54 /* Simulator.swift in Sources */,
 				2F20576F1BBF0132006E9E61 /* main.swift in Sources */,
 				479ACEEC1BBFE523000E68D5 /* Files.swift in Sources */,
 				2F2057761BBF0161006E9E61 /* LSB.swift in Sources */,
