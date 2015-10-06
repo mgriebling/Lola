@@ -1,3 +1,5 @@
+import Foundation
+
 class Simulator {
 
     /* NW 27.12.92 / 25.5.96 / 4.12.97 */
@@ -7,22 +9,23 @@ class Simulator {
     typealias INTEGER  = Int
     typealias LONGINT = Int
 
-    static let clash : SHORTINT = 2; static let undef : SHORTINT = 3;  /* signal values */
+    static let clash : SHORTINT = 2;
+    static let undef : SHORTINT = 3;  /* signal values */
 	static let BaseTyps = [LSB.bit, LSB.ts, LSB.oc];
     static let Struct = [LSB.array, LSB.record];
     static let Tab : Character = "\t"
 
 	static var rorg: LSB.Signal?  /*register list*/
-	static var sym: String = ""
-	static var and = [[SHORTINT]]()
-    static var or  = [[SHORTINT]]()
-    static var xor = [[SHORTINT]]()
-	static var not = [SHORTINT]()
-
-//	PROCEDURE^ assign(v: LSB.Variable);
+	static var sym: String = "01+x"
+    static let Undef = [SHORTINT](count: 3, repeatedValue: undef)
+    static let Undef2 = [[SHORTINT]](count: 3, repeatedValue: Undef)
+	static var and = Undef2
+    static var or  = Undef2
+    static var xor = Undef2
+	static var not = Undef
 
     static func value(s: LSB.Signal?) -> INTEGER {
-		var w, h: SHORTINT;
+        var w: SHORTINT = 0; var h: SHORTINT;
 	
 		if let s = s {
 			if s is LSB.Variable { assign((s as! LSB.Variable)); w = s.val
@@ -51,9 +54,11 @@ class Simulator {
 						} else if w == 0 { w = 0; s.val = 0
 						} else { w = s.val
 						} //
+                default: break
 				} //
 			} //
-		} else { w = undef
+		} else {
+            w = undef
 		} // ;
 		return INTEGER(w)
 	} // value;
@@ -191,139 +196,144 @@ class Simulator {
     static func Set (nameValue: String) {
         var v: LSB.Variable?
 		var value: INTEGER;
-		var name: LSB.Name;
-		var pos: INTEGER;
+		var name: LSB.Name
 	
 		/* extract the name and value from the nameValue input string */
-		pos = Strings.Pos(" ", nameValue, 0);
-		if pos <= 0 {
-            value = 0; COPY(nameValue, name);
+		let values = nameValue.componentsSeparatedByString(" ") // Strings.Pos(" ", nameValue, 0);
+		if values.count == 1 {
+            value = 0; name = nameValue
 		} else {
-            Strings.Extract(nameValue, 0, pos, name); Strings.Delete(nameValue, 0, pos+1);
-			value = Conv.IntVal(nameValue)
+            name = values[0]
+//            Strings.Extract(nameValue, 0, pos, name); Strings.Delete(nameValue, 0, pos+1);
+			value = INTEGER(values[1])!
 		} //;
 
-		v = LSB.This(LSB.org, name);
+		v = LSB.This(LSB.org!, name);
 		if v != nil {
-			Out.String("  "); LSB.WriteName(v); Out.Char("="); Out.Int(value, 1);
-			if v.fct == LSB.array {
-				v = v.dsc;
-				if (v.x == nil) || (v.fct == LSB.ts) {
-					while v != nil { v.val = SHORT(value MOD 2); value = value DIV 2; v = v.next } // ;
-				} else { Out.String(" not an input")
+            print("  ", terminator: ""); LSB.WriteName(v!); print("=\(value)", terminator: "")
+			if v!.fct == LSB.array {
+				v = v!.dsc;
+				if (v!.x == nil) || (v!.fct == LSB.ts) {
+					while v != nil { v!.val = SHORTINT(value % 2); value = value / 2; v = v!.next } // ;
+                } else { print(" not an input", terminator: "")
 				} //
-			} else if (v.x == nil) || (v.fct == LSB.ts) { v.val = SHORT(value MOD 2)
+			} else if (v!.x == nil) || (v!.fct == LSB.ts) { v!.val = SHORTINT(value % 2)
 			} //
 		} else { print("No input called '\(name)'");
 		} //;
-		Out.Ln()
+		print("")
 	} // Set;
 
-	static func lab(v: LSB.Variable) {
-		if v.u == 0 { LSB.WriteName(v); Out.Char(Tab) } //;
-		if v.fct IN Struct {
-			v = v.dsc;
-			while v != nil { lab(v); v = v.next } //
+	static func lab(var v: LSB.Variable?) {
+		if v!.u == 0 { LSB.WriteName(v!); OutChar(Tab) }
+		if Struct.contains(v!.fct) {
+			v = v!.dsc;
+			while v != nil { lab(v); v = v!.next } //
 		} //
 	} // lab;
 
 	static func Label() {
 		if LSB.org != nil {
-			lab(LSB.org); Out.Ln()
+			lab(LSB.org); print("")
 		} //
 	} // Label;
 
-	static func clrsel(v: LSB.Variable) {
-	 v.u = 1;
-		if v.fct IN Struct { v = v.dsc;
-			while v != nil { clrsel(v); v = v.next } //
+	static func clrsel(var v: LSB.Variable?) {
+        v!.u = 1;
+		if Struct.contains(v!.fct) {
+            v = v!.dsc;
+			while v != nil { clrsel(v); v = v!.next } //
 		} //
 	} // clrsel;
 
 	static func ClearSelect() {
-	
 		if LSB.org != nil { clrsel(LSB.org) } //
 	} // ClearSelect;
 
-    static func Select* (name: String) {
-		var i: LONGINT; v: LSB.Variable;
-			n: LSB.Name; pos: INTEGER;
+    static func Select (var name: String) {
+		var i: LONGINT; var v: LSB.Variable?
+        var n: LSB.Name
 	
 		if LSB.org != nil {
 			i = 0;
-			while (Strings.Length(name) > 0) && (i < 14) {
+			while (name.count() > 0) && (i < 14) {
 				/* extract the name and value from the nameValue input string */
-				pos = Strings.Pos(" ", name, 0);
-				if pos <= 0 { COPY(name, n); name = ""
-				} else { Strings.Extract(name, 0, pos, n); Strings.Delete(name, 0, pos+1)
+				let pos = name.rangeOfString(" ")
+				if pos == nil { n = name; name = ""
+				} else { n = name.substringToIndex(pos!.startIndex); name = name.substringFromIndex(pos!.startIndex)
 				} //;
-				v = LSB.This(LSB.org, n);
-				if v != nil { v.u = 0; INC(i) } // ;
+				v = LSB.This(LSB.org!, n)
+				if v != nil { v!.u = 0; i++ }
 			} //
 		} //
 	} // Select;
 
     static func DefOps() {
-		var i, j: INTEGER;
+//		var i, j: INTEGER;
 	
-		FOR i = 0 TO undef {
-			FOR j = 0 TO undef { or[i, j] = undef; and[i, j] = undef; xor[i, j] = undef } // ;
-			not[i] = undef
-		} // ;
-		or [0, 0] = 0; or [0, 1] = 1; or [1, 0] = 1; or [1, 1] = 1;
-		or [1, 2] = 1; or [1, 3] = 1; or [2, 1] = 1; or [3, 1] = 1;
-		and[0, 0] = 0; and[0, 1] = 0; and[1, 0] = 0; and[1, 1] = 1;
-		and[0, 2] = 0; and[0, 3] = 0; and[2, 0] = 0; and[3, 0] = 0;
-		xor[0, 0] = 0; xor[0, 1] = 1; xor[1, 0] = 1; xor[1, 1] = 0;
+//		FOR i = 0 TO undef {
+//			FOR j = 0 TO undef { or[i, j] = undef; and[i, j] = undef; xor[i, j] = undef } // ;
+//			not[i] = undef
+//		} // ;
+		or [0][0] = 0; or [0][1] = 1; or [1][0] = 1; or [1][1] = 1;
+		or [1][2] = 1; or [1][3] = 1; or [2][1] = 1; or [3][1] = 1;
+		and[0][0] = 0; and[0][1] = 0; and[1][0] = 0; and[1][1] = 1;
+		and[0][2] = 0; and[0][3] = 0; and[2][0] = 0; and[3][0] = 0;
+		xor[0][0] = 0; xor[0][1] = 1; xor[1][0] = 1; xor[1][1] = 0;
 		not[0] = 1; not[1] = 0
 	} // DefOps;
+    
+    static func InLine(inout s: String) {
+        let keyboard = NSFileHandle.fileHandleWithStandardInput()
+        let inputData = keyboard.availableData
+        s = NSString(data: inputData, encoding:NSUTF8StringEncoding) as! String
+    }
 
 	static func DisplayCommands() {	
-		Out.String("Simulator commands:"); Out.Ln;
-		Out.String("  s <n>               - Step circuit <n> times"); Out.Ln;
-		Out.String("  l <file>            - Load circuit from <file>.lola"); Out.Ln;
-		Out.String("  v <input> <n>       - Set the value of <input> to <n>"); Out.Ln;
-		Out.String("  d <var1> <var2> ... - Display variables <var1>, <var2>, etc."); Out.Ln;
-		Out.String("  x                   - Exit simulator"); Out.Ln; Out.Ln;
+		print("Simulator commands:")
+		print("  s <n>               - Step circuit <n> times")
+		print("  l <file>            - Load circuit from <file>.lola")
+		print("  v <input> <n>       - Set the value of <input> to <n>")
+		print("  d <var1> <var2> ... - Display variables <var1>, <var2>, etc.")
+        print("  x                   - Exit simulator"); print("")
 	} // DisplayCommands;
 
-	static func RemoveLeadingSpaces(var s: String) {
-	
+	static func RemoveLeadingSpaces(inout s: String) {
 		/* remove leading spaces in s */
-		while s[0] == " " { Strings.Delete(s, 0, 1) } //
+		while s.hasPrefix(" ") { s.removeAtIndex(s.startIndex) } //
 	} // RemoveLeadingSpaces;
 
-	static func GetString (var s: String) {
-	
-		In.Line(s); RemoveLeadingSpaces(s)
+	static func GetString (inout s: String) {
+		InLine(&s); RemoveLeadingSpaces(&s)
 	} // GetString;
 
-	static func GetInt (var n: INTEGER) {
-	var numb: LSB.Name;
-	
-		GetString(numb); n = Conv.IntVal(numb);
+	static func GetInt (inout n: INTEGER) {
+        var numb: LSB.Name = ""
+		GetString(&numb); n = INTEGER(numb)!
 		if n == 0 { n = 1 } //
 	} // GetInt;
 
 	static func Interactive() {
-	var n: INTEGER;
-		cmd: CHAR;
-		file: String
-		name: LSB.Name;
+        var n: INTEGER = 0
+		var cmd: String = ""
+		var file: String = ""
+		var name: LSB.Name = ""
 	
-		DisplayCommands;
+        DefOps()
+        print("Simulator  MG, NW 17.8.2014")
+		DisplayCommands()
 
 		repeat {
-			Out.String("> "); In.Char(cmd);
-			switch CAP(cmd) {
-				case "S" : GetInt(n); Label; Step(n)
-				case "L" : GetString(file); LST.Import(file); Start; ClearSelect
-				case "D" : GetString(name); Select(name); Label
-				case "V" : GetString(file); Set(file)
-				case "X" : /* just exit */
-				case } else { GetString(file); DisplayCommands
+            print("> ", terminator: ""); InLine(&cmd);
+			switch cmd.lowercaseString {
+				case "s" : GetInt(&n); Label(); Step(n)
+				case "l" : GetString(&file); LST.Import(file); Start(); ClearSelect()
+				case "d" : GetString(&name); Select(name); Label()
+				case "v" : GetString(&file); Set(file)
+				case "x" : break /* just exit */
+                default: GetString(&file); DisplayCommands()
 			} //
-		} while !(CAP(cmd) == "X";
+		} while cmd.lowercaseString != "x"
 
 /*
 		ClearSelect;
@@ -335,9 +345,4 @@ class Simulator {
 		*/
 	} // Interactive;
 
-
-	DefOps;
-    Out.String("Simulator  MG, NW 17.8.2014"); Out.Ln();
-	sym[0] = "0"; sym[1] = "1"; sym[2] = "+"; sym[3] = "x";
-	Interactive
 } // Simulator.
