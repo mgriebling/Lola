@@ -43,14 +43,14 @@ class LSS {
     static var line: INTEGER = 0
     static var chpos: INTEGER = 0
     static var errpos: LONGINT = 0
-    static var R: Files.File?
+    static var R = Files.File()
     static var key: [String] = []
     static var symno: [Symbols] = []
     
     static func Mark (num: INTEGER) {
         var fpos: LONGINT;
         
-        fpos = Files.Tell(R!);
+        fpos = Files.Tell(R);
         if fpos > errpos+2 {
             print("*** ERROR: \(errors[num])")
             print("    Line = \(line); pos = \(chpos)")
@@ -60,8 +60,8 @@ class LSS {
     } // Mark;
     
     static func Read (inout ch: CHAR) {
-        if Files.Eof(R!) { ch = "\0" } //;
-        ch = Files.ReadChar(R!); chpos++
+        if Files.Eof(R) { ch = "\0"; return } //;
+        ch = Files.ReadChar(R); chpos++
         if (ch == EOL) { line++; chpos = 1 } 
     } // Read;
     
@@ -113,16 +113,15 @@ class LSS {
                         if ch == "*" { comment() } //
                     } // ;
                     if ch == "*" { Read(&ch); break } // ;
-                    if Files.Eof(R!) { break } // ;
+                    if Files.Eof(R) { break } // ;
                     Read(&ch)
                 } while true
                 if ch == ")" { Read(&ch); break } // ;
-                if Files.Eof(R!) { Mark(8); break } //
+                if Files.Eof(R) { Mark(8); break } //
             } while true
         } // comment;
         
-        
-        while (ch <= " ") && (!Files.Eof(R!)) { Read(&ch) }
+        while (ch <= " ") && (!Files.Eof(R)) { Read(&ch) }
         /* if Files.Eof(R) { sym = eof; RETURN } //; */
         switch ch {
         case "'":
@@ -192,7 +191,10 @@ class LSS {
     } // Get;
 
     static func Init (fname: String) {
-        error = false; errpos = 0; chpos = 1; line = 1; R = Files.Open(fname, mode:"r"); Read(&ch)
+        error = false; errpos = 0; chpos = 1; line = 1;
+        if let file = Files.Open(fname, mode:"r") { R = file }
+        else { print("");  print("Couldn't open \(fname)!") }
+        Read(&ch)
         K = 0;
         Enter("BEGIN", LSS.Symbols.begin);
         Enter("BIT", LSS.Symbols.bit);

@@ -322,8 +322,9 @@ class Simulator {
 
 	static func GetInt (inout n: INTEGER) {
         var numb: LSB.Name = ""
-		GetString(&numb); n = INTEGER(numb)!
-		if n == 0 { n = 1 } //
+		GetString(&numb);
+		if let m = INTEGER(numb) { n = m }
+        else { n = 1 }
 	} // GetInt;
 
 	static func Interactive() {
