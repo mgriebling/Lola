@@ -17,8 +17,8 @@ class Simulator {
 
 	static var rorg: LSB.Signal?  /*register list*/
 	static var sym: String = "01+x"
-    static let Undef = [SHORTINT](count: 3, repeatedValue: undef)
-    static let Undef2 = [[SHORTINT]](count: 3, repeatedValue: Undef)
+    static let Undef = [SHORTINT](count: 4, repeatedValue: undef)
+    static let Undef2 = [[SHORTINT]](count: 4, repeatedValue: Undef)
 	static var and = Undef2
     static var or  = Undef2
     static var xor = Undef2
@@ -283,10 +283,23 @@ class Simulator {
 		not[0] = 1; not[1] = 0
 	} // DefOps;
     
-    static func InLine(inout s: String) {
+    static func InLine() -> String {
+        var s = ""
+        var c : Character
+        for ;; {
+            c = InChar()
+            if c != "\n" { s.append(c) }
+            else { break }
+        }
+        return s
+    }
+    
+    static func InChar() -> Character {
         let keyboard = NSFileHandle.fileHandleWithStandardInput()
-        let inputData = keyboard.availableData
-        s = NSString(data: inputData, encoding:NSUTF8StringEncoding) as! String
+        let data = keyboard.readDataOfLength(1)
+        var buffer = [CChar](count: 1, repeatedValue: 0)
+        data.getBytes(&buffer, length: 1)
+        return Character(Int(buffer[0]))
     }
 
 	static func DisplayCommands() {	
@@ -304,7 +317,7 @@ class Simulator {
 	} // RemoveLeadingSpaces;
 
 	static func GetString (inout s: String) {
-		InLine(&s); RemoveLeadingSpaces(&s)
+		s = InLine(); RemoveLeadingSpaces(&s)
 	} // GetString;
 
 	static func GetInt (inout n: INTEGER) {
@@ -315,25 +328,25 @@ class Simulator {
 
 	static func Interactive() {
         var n: INTEGER = 0
-		var cmd: String = ""
+		var cmd: Character = "\0"
 		var file: String = ""
 		var name: LSB.Name = ""
 	
         DefOps()
-        print("Simulator  MG, NW 17.8.2014")
+        print("Simulator  MG, NW 7.10.2015")
 		DisplayCommands()
 
 		repeat {
-            print("> ", terminator: ""); InLine(&cmd);
-			switch cmd.lowercaseString {
+            print("> ", terminator: ""); cmd = InChar();
+			switch cmd.lowercase {
 				case "s" : GetInt(&n); Label(); Step(n)
 				case "l" : GetString(&file); LST.Import(file); Start(); ClearSelect()
 				case "d" : GetString(&name); Select(name); Label()
 				case "v" : GetString(&file); Set(file)
 				case "x" : break /* just exit */
-                default: GetString(&file); DisplayCommands()
+                default: DisplayCommands()
 			} //
-		} while cmd.lowercaseString != "x"
+		} while cmd.lowercase != "x"
 
 /*
 		ClearSelect;

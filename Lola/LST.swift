@@ -18,7 +18,8 @@ class LST {
     static var SIG: INTEGER = 0
     static var f : Files.File?
     static var maxSym: INTEGER = 0
-    static var Var, sig: LSB.Signal?
+    static var Var: LSB.Signal?
+    static var sig: LSB.Signal?
     static var symbols: [LSB.Signal?] = []
     
     /* Symbol Storage */
@@ -113,7 +114,8 @@ class LST {
     } // ReadSignal;
     
     static func AddDefaultSymbols () {
-        Var = LSB.Signal(); sig = LSB.Signal()
+        Var = LSB.Signal()
+        sig = LSB.Signal()
         AddSymbol(nil); NILL = SymbolFound(nil)
         AddSymbol(Var); LVAR = SymbolFound(Var)
         AddSymbol(sig); SIG = SymbolFound(sig)
@@ -123,7 +125,8 @@ class LST {
     } // AddDefaultSymbols;
     
     static func Init () {
-        maxSym = 0;         /* No symbols yet */
+        maxSym = 0
+        symbols = []        /* No symbols yet */
         AddDefaultSymbols()	/* add the standard predefined symbols */
     } // Init;
     
