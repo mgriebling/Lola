@@ -205,7 +205,10 @@ class LST {
         /* write header and body */
         WriteString(LOLA);
         WriteSignal(LSB.org);
-        Files.Close(f!);
+        
+        /* output as C file */
+        Files.DumpToC(f!)
+        Files.Close(f!)
     } // Export;
     
 }
