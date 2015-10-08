@@ -16,6 +16,7 @@ class Files {
         var fin: NSInputStream?
         var fout: NSOutputStream?
         var pos: Int = 0
+        var inMemory: Bool = false
     }
     
     static func ReadChar(var f: File) -> Character {
@@ -35,7 +36,9 @@ class Files {
         var lch = Int(ch)
         if ch < 0 { lch += 256 }
         var buffer = [UInt8](count: 1, repeatedValue:UInt8(lch))
-        w.write(&buffer, maxLength: 1)
+        if w.hasSpaceAvailable {
+            w.write(&buffer, maxLength: 1)
+        }
     }
     
     static func WriteString(f: File, s: String) {
@@ -52,11 +55,20 @@ class Files {
         if let stream = NSInputStream(fileAtPath: name) where mode == "r" {
             stream.open()
             if stream.hasBytesAvailable {
-                return File(fin: stream, fout: nil, pos: 0)
+                return File(fin: stream, fout: nil, pos: 0, inMemory: false)
+            }
+        } else if mode == "wm" {
+            // special memory-based stream
+            let stream = NSOutputStream.outputStreamToMemory()
+            stream.open()
+            if stream.hasSpaceAvailable {
+                return File(fin: nil, fout: stream, pos: 0, inMemory: true)
             }
         } else if let stream = NSOutputStream(toFileAtPath: name, append: false) {
             stream.open()
-            return File(fin: nil, fout: stream, pos: 0)
+            if stream.hasSpaceAvailable {
+                return File(fin: nil, fout: stream, pos: 0, inMemory: false)
+            }
         }
         return nil
     }
@@ -65,6 +77,11 @@ class Files {
     
     static func Close(f: File) {
         f.fin?.close()
+        if let os = f.fout where f.inMemory {
+            if let buffer = os.propertyForKey(NSStreamDataWrittenToMemoryStreamKey) as? NSData {
+                print("Closed memory stream with \(buffer.length) bytes!")
+            }
+        }
         f.fout?.close()
     }
     

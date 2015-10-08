@@ -199,7 +199,7 @@ class LST {
         Init()
         if LSB.org == nil { return }
         fname = modName + ".lola"
-        f = Files.Open(fname, mode:"w");
+        f = Files.Open(fname, mode:"wm");  // was "w"
         if f == nil { return }
         
         /* write header and body */
