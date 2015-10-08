@@ -84,6 +84,8 @@ class Files {
                 var bytes = [UInt8](count: buffer.length, repeatedValue: 0)
                 buffer.getBytes(&bytes, length: buffer.length)
                 
+                buffer.writeToFile(f.name, atomically: false)  // also create .lola output file
+                
                 // Output the file header
                 let cname = f.name.stringByReplacingOccurrencesOfString(".lola", withString: "")
                 WriteString(fh!, s: "const unsigned char \(cname)[] = { ")
