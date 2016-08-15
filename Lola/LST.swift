@@ -29,7 +29,7 @@ class LST {
         
         /* check if the symbol is already present */
         pos = 0;
-        while (pos < maxSym) && (s !== symbols[pos]) { pos++ }
+        while (pos < maxSym) && (s !== symbols[pos]) { pos += 1 }
         if pos == maxSym {
             return NOTFOUND
         } else {
@@ -44,14 +44,14 @@ class LST {
         pos = SymbolFound(s);
         
         /* add the symbol if new */
-        if pos == NOTFOUND { symbols.append(s); maxSym++ }
+        if pos == NOTFOUND { symbols.append(s); maxSym += 1 }
         return pos;
     } // AddSymbol;
     
     static func Read (inout s : SHORTINT) {
         var c: CHAR;
         
-        c = Files.ReadChar(f!)
+        c = Files.ReadChar(&f!)
         var si = c.unicodeValue()
         if si > 127 { si -= 256 }
         s = SHORTINT(si)
@@ -61,10 +61,10 @@ class LST {
         /* Read integers in a compressed and portable format. */
         var s: INTEGER; var x: CHAR; var y: INTEGER;
         
-        s=0; y=0; x = Files.ReadChar(f!)
+        s=0; y=0; x = Files.ReadChar(&f!)
         while x.unicodeValue() >= 128 {
             y += (x.unicodeValue()-128) << s; s += 7
-            x = Files.ReadChar(f!)
+            x = Files.ReadChar(&f!)
         } //;
         num = y + (x.unicodeValue() % 64 - x.unicodeValue() / 64 * 64) << s
     } // ReadNum;
@@ -75,10 +75,10 @@ class LST {
         
         i = 0; s = ""
         repeat {
-            c = Files.ReadChar(f!)
+            c = Files.ReadChar(&f!)
             if Files.Eof(f!) || (c == "\0") { break }
             s.append(c)
-            i++
+            i += 1
         } while true
     } // ReadString;
     
@@ -155,13 +155,13 @@ class LST {
         Files.WriteChar(f!, ch: s)
     } // Write;
     
-    static func WriteNum (var lint: INTEGER) {
+    static func WriteNum (lint: INTEGER) {
         /** Write integers in a compressed and portable format.  */
-        
+        var lint = lint
         while (lint < -64) || (lint > 63) {
             Files.WriteChar(f!, ch:Int8(lint % 128 + 128));
             lint = lint / 128
-        } //;
+        }
         Files.WriteChar(f!, ch:Int8(lint % 128));
     } // WriteNum;
     

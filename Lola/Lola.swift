@@ -12,7 +12,7 @@ class Lola {
     static func Log(x: INTEGER) -> INTEGER {
         var y, e: INTEGER;
         e = 0; y = 1;
-        while x > y { y = 2*y; e++ } // ;
+        while x > y { y = 2*y; e += 1 } // ;
         return e
     } // Log;
     
@@ -39,12 +39,13 @@ class Lola {
         return y
     } // V;
     
-    static func Index(var n: INTEGER, inout _ name: String) {
-        var i, j: INTEGER;
+    static func Index(n: INTEGER, inout _ name: String) {
+        var i, j: INTEGER
+        var n = n
         var d = [INTEGER](count: 4, repeatedValue: 0)
         i = 0; j = 0; name = ""
-        repeat { d[i] = n % 10; i++; n = n / 10 } while (n != 0)
-        repeat { i--; name.append(Character(d[i] + 0x30)); j++ } while (i != 0)
+        repeat { d[i] = n % 10; i += 1; n = n / 10 } while (n != 0)
+        repeat { i -= 1; name.append(Character(d[i] + 0x30)); j += 1 } while (i != 0)
     } // Index;
     
     static func NewVar(typ: LSC.Item, _ mode: INTEGER, _ id: String, _ link: LSB.Variable?, _ anc: LSB.Variable) -> LSB.Variable {
@@ -56,7 +57,7 @@ class Lola {
         v = LSB.NewVar(form, LSB.black, nil, anc, link, id); v.classv = SHORTINT(mode) - LSC.var0
         if form == LSB.array {
             len = V(typ.b); v.val = SHORTINT(len); el = nil;
-            while len > 0 { len--; el = NewVar(typ.a!, mode, null, el, v); Index(len, &el!.name) } // ;
+            while len > 0 { len -= 1; el = NewVar(typ.a!, mode, null, el, v); Index(len, &el!.name) } // ;
             v.dsc = el
         } else if form == LSB.record {
             v.name = id; el = nil;
@@ -88,7 +89,7 @@ class Lola {
         } else {
             switch x.tag {
             case LSC.asel: y = E(x.a!); v = (y as! LSB.Variable).dsc; k = V(x.b)
-            while (k > 0) && (v != nil) { v = v!.next; k-- } // ;
+            while (k > 0) && (v != nil) { v = v!.next; k -= 1 }
             if (v == nil) || (k < 0) {
                 v = (y as! LSB.Variable); print("index off range in ", terminator: "")
                 LSB.WriteName(v!); print(""); v = v!.dsc
@@ -99,7 +100,7 @@ class Lola {
             y = v!
             case LSC.sect: y = E(x.a!); k = V(x.b!.a); n = V(x.b!.b) - k + 1;  /*nof elems*/
             v = (y as! LSB.Variable).dsc;
-            while (k > 0) && (v != nil) { v = v!.next; k-- } // ;
+            while (k > 0) && (v != nil) { v = v!.next; k -= 1 } // ;
             if (v == nil) || (k < 0) {
                 v = (y as! LSB.Variable); print("index off range in ", terminator: "")
                 LSB.WriteName(v!); print(""); v = v!.dsc
@@ -124,7 +125,7 @@ class Lola {
             if fp.fct == LSB.array {
                 if fp.val == ap.val {  /*lengths*/
                     fel = fp.dsc; ael = (ap as! LSB.Variable).dsc; n = INTEGER(fp.val)
-                    while n > 0 { Link(fel!, ael!); ael = ael!.next; fel = fel!.next; n-- }
+                    while n > 0 { Link(fel!, ael!); ael = ael!.next; fel = fel!.next; n -= 1 }
                 } else {
                     print("array mismatch ", terminator: ""); LSB.WriteName(fp); print("")
                 } //
@@ -132,8 +133,10 @@ class Lola {
         } //
     } // Link;
     
-    static func AssignPos(var v: LSB.Variable?, _ anc: LSB.Signal, var _ x: LSC.Item?) {
-        var pos: INTEGER;
+    static func AssignPos(v: LSB.Variable?, _ anc: LSB.Signal, _ x: LSC.Item?) {
+        var pos: INTEGER
+        var v = v
+        var x = x
         
         if x!.tag == LSC.next { /*list*/
             v = v!.dsc;
@@ -146,7 +149,8 @@ class Lola {
         } //
     } // AssignPos;
     
-    static func S(var s: LSC.Item?) {
+    static func S(s: LSC.Item?) {
+        var s = s
         var tag, lim, u, v: INTEGER;
         var cond, cv: LSC.Item;
         var x, ael, ap: LSC.Item?
@@ -184,7 +188,7 @@ class Lola {
                 cv = x!.a!; x = x!.b;
                 scope = LSB.NewVar(LSB.integer, SHORTINT(V(x!.a)), nil, nil, scope!, (cv as! LSC.Object).name);
                 x = x!.b; lim = V(x!.a);
-                while scope!.val <= SHORTINT(lim) { S(x!.b); scope!.val++ } // ;
+                while scope!.val <= SHORTINT(lim) { S(x!.b); scope!.val += 1 }
                 scope = scope!.next
             case LSC.call:
                 y = E(x!.a!); fp = (y as! LSB.Variable).dsc; ap = x!.b;

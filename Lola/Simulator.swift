@@ -76,7 +76,7 @@ class Simulator {
 				/* at this point v.x should point to a SignalDesc with fct = link, but
 				there may be intervening ts variables due to renaming */
 				while (lnk != nil) && (lnk!.fct != LSB.link) { lnk = lnk!.x } //;
-				for ;; {
+				while true {
 					if lnk == nil { break } // ;
 					tsg = lnk!.x; h = SHORTINT(value(tsg!.x))
 					if h == 1 {
@@ -97,8 +97,9 @@ class Simulator {
 		} //
 	} // assign;
 
-	static func evaluate(var v: LSB.Variable?) {
+	static func evaluate(v: LSB.Variable?) {
         /*compute new values of variables*/
+        var v = v
 		if BaseTyps.contains(v!.fct) {
             assign(v!)
 		} else if Struct.contains(v!.fct)  {
@@ -107,7 +108,8 @@ class Simulator {
 		} //
 	} // evaluate;
 
-	static func initval(var v: LSB.Variable?) {
+	static func initval(v: LSB.Variable?) {
+        var v = v
 		if BaseTyps.contains(v!.fct) {
 			if v!.x != nil { v!.val = LSB.black } //
 		} else if Struct.contains(v!.fct) {
@@ -122,7 +124,8 @@ class Simulator {
         if v != nil { listinverse(v!.next); print(sym[Int(v!.val)], terminator:"") } //
 	} // listinverse;
 
-	static func list(var v: LSB.Variable?) {
+	static func list(v: LSB.Variable?) {
+        var v = v
 		if BaseTyps.contains(v!.fct) {
 			if v!.u == 0 { OutChar(sym[Int(v!.val)]); OutChar(Tab) } //
 		} else if v!.fct == LSB.record { v = v!.dsc;
@@ -148,7 +151,7 @@ class Simulator {
 				} // ;
 				rg = rorg;  /* tick: replace old values of registers by new values */
 				while rg != nil { r = rg!.x; r!.val = r!.y!.val; rg = rg!.y } // ;
-				initval(LSB.org); evaluate(LSB.org); i--
+				initval(LSB.org); evaluate(LSB.org); i -= 1
 				list(LSB.org); print("")
 			} //
 		} //
@@ -177,7 +180,8 @@ class Simulator {
 		} //
 	} // start1;
 
-    static func start0(var v: LSB.Variable?) {
+    static func start0(v: LSB.Variable?) {
+        var v = v
 		if BaseTyps.contains(v!.fct) { start1(v!.x);
 			if v!.x != nil { v!.val = LSB.black } //
 		} else if Struct.contains(v!.fct) { v = v!.dsc;
@@ -224,7 +228,8 @@ class Simulator {
 		print("")
 	} // Set;
 
-	static func lab(var v: LSB.Variable?) {
+	static func lab(v: LSB.Variable?) {
+        var v = v
 		if v!.u == 0 { LSB.WriteName(v!); OutChar(Tab) }
 		if Struct.contains(v!.fct) {
 			v = v!.dsc;
@@ -238,7 +243,8 @@ class Simulator {
 		} //
 	} // Label;
 
-	static func clrsel(var v: LSB.Variable?) {
+	static func clrsel(v: LSB.Variable?) {
+        var v = v
         v!.u = 1;
 		if Struct.contains(v!.fct) {
             v = v!.dsc;
@@ -250,7 +256,8 @@ class Simulator {
 		if LSB.org != nil { clrsel(LSB.org) } //
 	} // ClearSelect;
 
-    static func Select (var name: String) {
+    static func Select (name: String) {
+        var name = name
 		var i: LONGINT; var v: LSB.Variable?
         var n: LSB.Name
 	
@@ -263,7 +270,7 @@ class Simulator {
 				} else { n = name.substringToIndex(pos!.startIndex); name = name.substringFromIndex(pos!.startIndex)
 				} //;
 				v = LSB.This(LSB.org!, n)
-				if v != nil { v!.u = 0; i++ }
+				if v != nil { v!.u = 0; i += 1 }
 			} //
 		} //
 	} // Select;
@@ -286,7 +293,7 @@ class Simulator {
     static func InLine() -> String {
         var s = ""
         var c : Character
-        for ;; {
+        while true {
             c = InChar()
             if c != "\n" { s.append(c) }
             else { break }

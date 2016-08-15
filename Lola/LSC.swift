@@ -87,7 +87,8 @@ class LSC {
         return x!
     } //This;
     
-    static func ThisField(var list: Object?) -> Object {
+    static func ThisField(list: Object?) -> Object {
+        var list = list
         guard0.name = LSS.id;
         while list!.name != LSS.id { list = list!.next } //;
         if list === guard0 { LSS.Mark(5)

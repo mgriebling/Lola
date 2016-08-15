@@ -20,12 +20,12 @@ class Files {
         var inMemory: Bool = false
     }
     
-    static func ReadChar(var f: File) -> Character {
+    static func ReadChar(inout f: File) -> Character {
         guard let r = f.fin else { return "\0" }
         if r.hasBytesAvailable {
             var buffer = [UInt8](count: 1, repeatedValue: 0)
             if r.read(&buffer, maxLength: 1) == 1 {
-                f.pos++
+                f.pos += 1
                 return Character(Int(buffer[0]))
             }
         }

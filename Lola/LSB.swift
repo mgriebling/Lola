@@ -69,11 +69,11 @@ class LSB {
         var id: String
         v = org.dsc; i = 0; id = ""
 		repeat { j = 0;
-			while (name[i] > " ") && (name[i] != ".") { id.append(name[i]); j++; i++ }
+			while (name[i] > " ") && (name[i] != ".") { id.append(name[i]); j += 1; i += 1 }
 			while (v != nil) && (v!.name != id) { v = v!.next }
 			if name[i] == "." {
 				if v != nil && arrayRecordSet.contains(v!.fct) {
-                    v = v!.dsc; i++
+                    v = v!.dsc; i += 1
 				} else {
                     v = nil; break
 				}
@@ -160,7 +160,8 @@ class LSB {
 		}
 	}
 
-	static func simp(var v: Variable?) {
+	static func simp(v: Variable?) {
+        var v = v
 		if arrayRecordSet.contains(v!.fct) {
             v = v!.dsc;
 			while v != nil { simp(v); v = v!.next }
@@ -175,7 +176,7 @@ class LSB {
     static func Simplify (org: Variable) {
 		var n: INTEGER;
         n = 0;
-        repeat { n++; change = false; simp(org) } while change
+        repeat { n += 1; change = false; simp(org) } while change
 	}
 
 	/*----------------- Find Loops --------------------*/
@@ -194,7 +195,8 @@ class LSB {
 		}
 	}
 
-	static func Loops (var v: Variable?) {
+	static func Loops (v: Variable?) {
+        var v = v
 		if arrayRecordSet.contains(v!.fct) {
             v = v!.dsc;
 			while v != nil { Loops(v); v = v!.next }
@@ -216,7 +218,8 @@ class LSB {
 		}
 	}
 
-    static func Show (var x: Variable?) {
+    static func Show (x: Variable?) {
+        var x = x
 		let typ = x!.fct
 		if arrayRecordSet.contains(typ) {
 			x = x!.dsc;
