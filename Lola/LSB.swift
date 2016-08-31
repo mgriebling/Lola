@@ -4,14 +4,14 @@ class LSB {
     
     /* Lola System Base   MG 03.10.15, NW 25.2.95 / 16.4.96 / 21.10.97 */
 
-	let NameLen = 32;
-    static let black : SHORTINT = 5; static let grey : SHORTINT = 4;  /* node values used in loop search */
+	let NameLen = 32
+    static let black : SHORTINT = 5; static let grey : SHORTINT = 4  /* node values used in loop search */
     
     typealias SHORTINT = Int8
     typealias BOOLEAN = Bool
     typealias INTEGER = Int
 		
-    /*function codes*/
+    /* function codes */
     static let bit : SHORTINT = 0; static let ts : SHORTINT  = 1; static let oc : SHORTINT = 2;
     static let integer : SHORTINT = 3; static let array : SHORTINT = 4; static let record : SHORTINT = 5;
     static let sect : SHORTINT = 6; static let buf : SHORTINT = 7; static let not : SHORTINT = 8;
@@ -20,7 +20,7 @@ class LSB {
     static let latch : SHORTINT = 16; static let sr : SHORTINT = 17; static let tsg : SHORTINT = 18; static let link : SHORTINT = 19
 
     /*class codes*/
-    static let Var : SHORTINT = 0; static let In : SHORTINT = 1; static let Out: SHORTINT = 2; static let IO : SHORTINT = 3;
+    static let Var : SHORTINT = 0; static let In : SHORTINT = 1; static let Out: SHORTINT = 2; static let IO : SHORTINT = 3
 
 	typealias Name = String
 
@@ -29,7 +29,7 @@ class LSB {
 
     class Signal {
 		var x, y: Signal?
-        var fct: SHORTINT = LSB.bit; var val: SHORTINT = 0; var u: SHORTINT = -1; var v: SHORTINT = 0
+        var fct = LSB.bit; var val: SHORTINT = 0; var u: SHORTINT = -1; var v: SHORTINT = 0
     }
 
     class Variable : Signal {
@@ -56,12 +56,14 @@ class LSB {
 	static func Init() {
         org = nil; reset = nil; clk.x = nil
 	}
+    
+    static func OutString(s: String)  { print(s, terminator:"") }
 
     static func WriteName (v: Variable) {
 		var w: Signal?
         w = v.y
-        if (w != nil) && (w !== org) { WriteName(w as! Variable); print(".", terminator: "") }
-		print(v.name, terminator: "")
+        if (w != nil) && (w !== org) { WriteName(w as! Variable); OutString(".") }
+		OutString(v.name)
 	}
 
     static func This (org: Variable, _ name: String) -> Variable? {
@@ -90,72 +92,74 @@ class LSB {
 
     static func NewVar (f: SHORTINT, _ val: SHORTINT, _ x: Signal?, _ y: Signal?, _ next: Variable?, _ name: String) -> Variable {
 		let v = Variable(name: name)
-        v.fct = f; v.val = val; v.x = x; v.y = y; v.u = -1; v.v = -1;
+        v.fct = f; v.val = val; v.x = x; v.y = y; v.u = -1; v.v = -1
 		v.next = next; return v
 	}
 
 	/*----------------- Simplify --------------------*/
 
     static func traverse(inout s: Signal?) {
-		var z: Signal;
+		var z: Signal
 		if s != nil {
 			if s is Variable {
 				if s!.x === zero { s = zero
 				} else if s!.x === one { s = one
 				}
 			} else {
-                traverse(&s!.x); traverse(&s!.y);
-				if s!.fct == LSB.not {
-					if s!.y!.fct == LSB.not { s = s!.y!.y
-					} else if s!.y === zero { s = one
-					} else if s!.y === one { s = zero
-					}
-				} else if s!.fct == LSB.or {
-					if s!.x === one { s = one
-					} else if s!.x === zero { s = s!.y
-					} else if s!.y === one { s = one
-					} else if s!.y === zero { s = s!.x
-					}
-				} else if s!.fct == LSB.xor {
-					if s!.x === zero { s = s!.y
-					} else if s!.x === one {
-						if s!.y!.fct == LSB.not { s = s!.y!.y } else { s!.fct = LSB.not; s!.x = nil }
-					} else if s!.y === zero { s = s!.x
-					} else if s!.y === one {
-						if s!.x!.fct == LSB.not { s = s!.x!.y } else { s!.fct = LSB.not; s!.y = s!.x; s!.x = nil }
-					}
-				} else if s!.fct == LSB.and {
-					if s!.x === zero { s = zero
-					} else if s!.x === one { s = s!.y
-					} else if s!.y === zero { s = zero
-					} else if s!.y === one { s = s!.x
-					}
-				} else if s!.fct == LSB.mux {
-					if s!.x === zero { s = s!.y!.x
-					} else if s!.x === one { s = s!.y!.y
-					} else if s!.y!.x === zero { s!.fct = LSB.and; s!.y = s!.y!.y; traverse(&s)
-					} else if s!.y!.x === one { s!.fct = LSB.or; z = s!.y!; s!.y = z.y;
-						z.fct = LSB.not; z.x = nil; z.y = s!.x; s!.x = z; traverse(&s)
-					} else if s!.y!.y === zero { s!.fct = LSB.and; z = s!.y!; s!.y = z.x;
-						z.fct = LSB.not; z.x = nil; z.y = s!.x; s!.x = z; traverse(&s!.x)
-					} else if s!.y!.y === one { s!.fct = LSB.or; s!.y = s!.y!.x
-					}
-				} else if s!.fct == LSB.reg {
-					if (s!.x === zero) || (s!.x === one) || (s!.y!.x === zero) {
-						print(" dead reg")
-					}
-				} else if s!.fct == LSB.latch {
-					if s!.x === zero { print(" dead latch")
-					} else if s!.x === one { s = s!.y
-					}
-				} else if s!.fct == LSB.sr {
-					if (s!.x === zero) || (s!.y === zero) { print(" dead SR")
-					}
-				} else if s!.fct == LSB.tsg {
-					if (s!.x === zero) || (s!.x === one) {
-						print(" dead tri-state")
-					}
-				}
+                traverse(&s!.x); traverse(&s!.y)
+                switch s!.fct {
+                case LSB.not:
+                    if s!.y!.fct == LSB.not { s = s!.y!.y
+                    } else if s!.y === zero { s = one
+                    } else if s!.y === one { s = zero
+                    }
+                case LSB.or:
+                    if s!.x === one { s = one
+                    } else if s!.x === zero { s = s!.y
+                    } else if s!.y === one { s = one
+                    } else if s!.y === zero { s = s!.x
+                    }
+                case LSB.xor:
+                    if s!.x === zero { s = s!.y
+                    } else if s!.x === one {
+                        if s!.y!.fct == LSB.not { s = s!.y!.y } else { s!.fct = LSB.not; s!.x = nil }
+                    } else if s!.y === zero { s = s!.x
+                    } else if s!.y === one {
+                        if s!.x!.fct == LSB.not { s = s!.x!.y } else { s!.fct = LSB.not; s!.y = s!.x; s!.x = nil }
+                    }
+                case LSB.and:
+                    if s!.x === zero { s = zero
+                    } else if s!.x === one { s = s!.y
+                    } else if s!.y === zero { s = zero
+                    } else if s!.y === one { s = s!.x
+                    }
+                case LSB.mux:
+                    if s!.x === zero { s = s!.y!.x
+                    } else if s!.x === one { s = s!.y!.y
+                    } else if s!.y!.x === zero { s!.fct = LSB.and; s!.y = s!.y!.y; traverse(&s)
+                    } else if s!.y!.x === one { s!.fct = LSB.or; z = s!.y!; s!.y = z.y;
+                        z.fct = LSB.not; z.x = nil; z.y = s!.x; s!.x = z; traverse(&s)
+                    } else if s!.y!.y === zero { s!.fct = LSB.and; z = s!.y!; s!.y = z.x;
+                        z.fct = LSB.not; z.x = nil; z.y = s!.x; s!.x = z; traverse(&s!.x)
+                    } else if s!.y!.y === one { s!.fct = LSB.or; s!.y = s!.y!.x
+                    }
+                case LSB.reg:
+                    if s!.x === zero || s!.x === one || s!.y!.x === zero {
+                        print(" dead reg")
+                    }
+                case LSB.latch:
+                    if s!.x === zero { print(" dead latch")
+                    } else if s!.x === one { s = s!.y
+                    }
+                case LSB.sr:
+                    if s!.x === zero || s!.y === zero { print(" dead SR")
+                    }
+                case LSB.tsg:
+                    if s!.x === zero || s!.x === one {
+                        print(" dead tri-state")
+                    }
+                default: break
+                }
 			}
 		}
 	}
@@ -163,12 +167,12 @@ class LSB {
 	static func simp(v: Variable?) {
         var v = v
 		if arrayRecordSet.contains(v!.fct) {
-            v = v!.dsc;
+            v = v!.dsc
 			while v != nil { simp(v); v = v!.next }
-		} else if (v!.x !== zero) && (v!.x !== one) {
+		} else if v!.x !== zero && v!.x !== one {
 			if v!.fct == LSB.link { traverse(&v!.x); traverse(&v!.y)
-			} else { traverse(&v!.x);
-				if (v!.x === zero) || (v!.x === one) { change = true }
+			} else { traverse(&v!.x)
+				if v!.x === zero || v!.x === one { change = true }
 			}
 		}
 	}
@@ -189,7 +193,7 @@ class LSB {
 					WriteName(s as! Variable); print(" in loop")
 				}
 			} else if s!.fct != LSB.reg {
-				Loop(s!.x);
+				Loop(s!.x)
 				if s!.fct != LSB.tsg { Loop(s!.y) }
 			}
 		}
@@ -198,7 +202,7 @@ class LSB {
 	static func Loops (v: Variable?) {
         var v = v
 		if arrayRecordSet.contains(v!.fct) {
-            v = v!.dsc;
+            v = v!.dsc
 			while v != nil { Loops(v); v = v!.next }
 		} else if v!.val == black { Loop(v)
 		}
@@ -211,9 +215,9 @@ class LSB {
 		if x != nil {
 			if x is Variable { WriteName(x as! Variable)
 			} else {
-                f = x!.fct; print("(", terminator: "")
-				ShowTree(x!.x); print(opcode[Int(f)], terminator: "")
-                ShowTree(x!.y); print(")", terminator: "")
+                f = x!.fct; OutString("(")
+				ShowTree(x!.x); OutString("\(opcode[Int(f)])")
+                ShowTree(x!.y); OutString(")")
 			}
 		}
 	}
@@ -222,14 +226,14 @@ class LSB {
         var x = x
 		let typ = x!.fct
 		if arrayRecordSet.contains(typ) {
-			x = x!.dsc;
+			x = x!.dsc
 			while x != nil { Show(x); x = x!.next }
 		} else if typ != LSB.integer {
 			WriteName(x!)
 			if x!.u != -1 {
-				print(" (\(Int(x!.u) % 0x100))", terminator: "")
+				OutString(" (\(Int(x!.u) % 0x100))")
 			}
-			if x!.x != nil { print(" = ", terminator: ""); ShowTree(x!.x) }
+			if x!.x != nil { OutString(" = "); ShowTree(x!.x) }
 			print("")
 		}
 	}

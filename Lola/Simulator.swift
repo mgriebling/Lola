@@ -8,10 +8,10 @@ class Simulator {
     typealias INTEGER  = Int
     typealias LONGINT = Int
 
-    static let clash : SHORTINT = 2;
-    static let undef : SHORTINT = 3;  /* signal values */
-	static let BaseTyps = [LSB.bit, LSB.ts, LSB.oc];
-    static let Struct = [LSB.array, LSB.record];
+    static let clash : SHORTINT = 2
+    static let undef : SHORTINT = 3                    /* signal values */
+	static let BaseTyps = [LSB.bit, LSB.ts, LSB.oc]
+    static let Struct = [LSB.array, LSB.record]
     static let Tab : Character = "\t"
 
 	static var rorg: LSB.Signal?  /*register list*/
@@ -43,25 +43,31 @@ class Simulator {
 						}
 				case LSB.reg: w = s.val
 				case LSB.latch: h = value(s.x)
-						if h == undef { w = undef
-						} else if h == 0 { w = s.val
-						} else { w = value(s.y); s.val = w
+						if h == undef {
+                            w = undef
+						} else if h == 0 {
+                            w = s.val
+						} else {
+                            w = value(s.y); s.val = w
 						}
 				case LSB.sr: h = value(s.x); w = value(s.y)
-						if h == undef || w == undef { w = undef
+						if h == undef || w == undef {
+                            w = undef
 						} else if h == 0 {
 							if w == 0 { w = clash } else { w = 1; s.val = 1 } //
-						} else if w == 0 { w = 0; s.val = 0
-						} else { w = s.val
+						} else if w == 0 {
+                            w = 0; s.val = 0
+						} else {
+                            w = s.val
 						} //
                 default: break
-				} //
-			} //
+				}
+			}
 		} else {
             w = undef
-		} // ;
+		}
 		return w
-	} // value;
+	} // value
 
 	static func assign(v: LSB.Variable) {
 		var lnk, tsg: LSB.Signal?
@@ -70,32 +76,35 @@ class Simulator {
         w = 0;
 		if v.val == LSB.black {
 			v.val = LSB.grey
-			if v.fct == LSB.bit { w = value(v.x)
+			if v.fct == LSB.bit {
+                w = value(v.x)
 			} else if v.fct == LSB.ts {
 				lnk = v.x; h = 0; w = undef
 				/* at this point v.x should point to a SignalDesc with fct = link, but
 				   there may be intervening ts variables due to renaming */
-				while lnk != nil && lnk!.fct != LSB.link { lnk = lnk!.x } //;
+				while lnk != nil && lnk!.fct != LSB.link { lnk = lnk!.x }
 				while true {
-					if lnk == nil { break } // ;
+					if lnk == nil { break }
 					tsg = lnk!.x; h = value(tsg!.x)
 					if h == 1 {
 						w = value(tsg!.y)
 						repeat { lnk = lnk!.y } while !(lnk == nil || value(lnk!.x!.x) != 0)
-						if lnk != nil { w = clash; break } //
-					} else if h == 0 { lnk = lnk!.y
-					} else { break
-					} //
-				} //
+						if lnk != nil { w = clash; break }
+					} else if h == 0 {
+                        lnk = lnk!.y
+					} else {
+                        break
+					}
+				}
 			} else if v.fct == LSB.oc {
 				lnk = v.x; w = 1
 				while lnk != nil && w == 1 { w = value(lnk!.x); lnk = lnk!.y } //
-			} // ;
+			}
 			v.val = w
 		} else if v.val == LSB.grey {
 			LSB.WriteName(v); print(" in loop")
-		} //
-	} // assign;
+		}
+	} // assign
 
 	static func evaluate(v: LSB.Variable?) {
         /*compute new values of variables*/
@@ -119,6 +128,7 @@ class Simulator {
 	} // initval;
     
     static func OutChar(c: Character) { print(c, terminator:"") }
+    static func OutString(s: String)  { print(s, terminator:"") }
 
 	static func listinverse(v: LSB.Variable?) {
         if v != nil { listinverse(v!.next); OutChar(sym[Int(v!.val)]) } //
@@ -141,16 +151,16 @@ class Simulator {
 		var i: LONGINT; var r, rg: LSB.Signal?
 	
 		if LSB.org != nil {
-            i = step;
+            i = step
 			while i > 0 {
-				rg = rorg;  /* compute new values of register inputs */
+				rg = rorg  /* compute new values of register inputs */
 				while rg != nil {
-					r = rg!.x;
-					if value(r!.y!.x) == 1 { /* enabled */ r!.y!.val = SHORTINT(value(r!.y!.y)) } else { r!.y!.val = r!.val } // ;
+					r = rg!.x
+					if value(r!.y!.x) == 1 { /* enabled */ r!.y!.val = SHORTINT(value(r!.y!.y)) } else { r!.y!.val = r!.val }
 					rg = rg!.y
-				} // ;
+				}
 				rg = rorg  /* tick: replace old values of registers by new values */
-				while rg != nil { r = rg!.x; r!.val = r!.y!.val; rg = rg!.y } // ;
+				while rg != nil { r = rg!.x; r!.val = r!.y!.val; rg = rg!.y }
 				initval(LSB.org); evaluate(LSB.org); i -= 1
 				list(LSB.org); print("")
 			} //
@@ -165,7 +175,7 @@ class Simulator {
 			while rg != nil { rg!.x!.val = 0; rg = rg!.y } // ;
 			initval(LSB.org); evaluate(LSB.org);
 			print("reset")
-            print(""); print("loaded ", terminator:""); Label()
+            print(""); OutString("loaded "); Label()
             list(LSB.org); print("\n")
 		} //
 	} // Reset;
@@ -213,16 +223,16 @@ class Simulator {
 
 		v = LSB.This(LSB.org!, name)
 		if v != nil {
-            print("  ", terminator: ""); LSB.WriteName(v!); print("=\(value)", terminator: "")
+            OutString("  "); LSB.WriteName(v!); OutString("=\(value)")
 			if v!.fct == LSB.array {
 				v = v!.dsc
 				if v!.x == nil || v!.fct == LSB.ts {
 					while v != nil { v!.val = SHORTINT(value % 2); value = value / 2; v = v!.next }
-                } else { print(" not an input", terminator: "")
-				} //
+                } else { OutString(" not an input")
+				}
 			} else if v!.x == nil || v!.fct == LSB.ts { v!.val = SHORTINT(value % 2)
 			}
-		} else { print("No input called '\(name)'");
+		} else { print("No input called '\(name)'")
 		}
 		print("")
 	} // Set
@@ -256,23 +266,17 @@ class Simulator {
 	} // ClearSelect;
 
     static func Select (name: String) {
-        var name = name
 		var i: LONGINT; var v: LSB.Variable?
-        var n: LSB.Name
 	
 		if LSB.org != nil {
 			i = 0
-			while name.count() > 0 && i < 14 {
-				/* extract the name and value from the nameValue input string */
-				let pos = name.rangeOfString(" ")
-				if pos == nil { n = name; name = ""
-				} else { n = name.substringToIndex(pos!.startIndex); name = name.substringFromIndex(pos!.startIndex)
-				}
-				v = LSB.This(LSB.org!, n)
+            let names = name.componentsSeparatedByCharactersInSet(NSCharacterSet.whitespaceCharacterSet())
+            for name in names where i < 14 {
+				v = LSB.This(LSB.org!, name)
 				if v != nil { v!.u = 0; i += 1 }
-			} //
-		} //
-	} // Select;
+			}
+		}
+	} // Select
 
     static func DefOps() {
 		or [0][0] = 0; or [0][1] = 1; or [1][0] = 1; or [1][1] = 1
@@ -338,7 +342,7 @@ class Simulator {
 		DisplayCommands()
 
 		repeat {
-            print("> ", terminator: ""); cmd = InChar();
+            OutString("> "); cmd = InChar();
 			switch cmd.lowercase {
 				case "s" : GetInt(&n); Label(); Step(n)
 				case "l" : GetString(&file); LST.Import(file); Start(); ClearSelect()
