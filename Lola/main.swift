@@ -9,5 +9,5 @@
 import Foundation
 
 print("Lola Compiler MG 10.05.2015, NW 21.10.97")
-Lola.Compile(Process.arguments)
+Lola.Compile(CommandLine.arguments)
 

@@ -24,7 +24,7 @@ class LST {
     
     /* Symbol Storage */
     
-    static func SymbolFound (s: LSB.Signal?) -> INTEGER {
+    static func SymbolFound (_ s: LSB.Signal?) -> INTEGER {
         var pos: INTEGER
         
         /* check if the symbol is already present */
@@ -37,7 +37,7 @@ class LST {
         } //
     } // SymbolFound
     
-    static func AddSymbol (s: LSB.Signal?) -> INTEGER {
+    static func AddSymbol (_ s: LSB.Signal?) -> INTEGER {
         var pos: INTEGER;
         
         /* check if the symbol is already present */
@@ -48,7 +48,7 @@ class LST {
         return pos
     } // AddSymbol
     
-    static func Read (inout s : SHORTINT) {
+    static func Read (_ s : inout SHORTINT) {
         var c: CHAR;
         
         c = Files.ReadChar(&f!)
@@ -57,7 +57,7 @@ class LST {
         s = SHORTINT(si)
     } // Read
     
-    static func ReadNum (inout num: INTEGER) {
+    static func ReadNum (_ num: inout INTEGER) {
         /* Read integers in a compressed and portable format. */
         var s: INTEGER; var x: CHAR; var y: INTEGER;
         
@@ -69,7 +69,7 @@ class LST {
         num = y + (x.unicodeValue() % 64 - x.unicodeValue() / 64 * 64) << s
     } // ReadNum
     
-    static func ReadString (inout s : String) {
+    static func ReadString (_ s : inout String) {
         var i : INTEGER;
         var c : CHAR;
         
@@ -82,7 +82,7 @@ class LST {
         } while true
     } // ReadString
     
-    static func ReadSignal (inout x: LSB.Signal?) {
+    static func ReadSignal (_ x: inout LSB.Signal?) {
         var v: INTEGER = 0
         var y: LSB.Variable
         var t: LSB.Signal?
@@ -116,12 +116,12 @@ class LST {
     static func AddDefaultSymbols () {
         Var = LSB.Signal()
         sig = LSB.Signal()
-        AddSymbol(nil); NILL = SymbolFound(nil)
-        AddSymbol(Var); LVAR = SymbolFound(Var)
-        AddSymbol(sig); SIG = SymbolFound(sig)
-        AddSymbol(LSB.zero)
-        AddSymbol(LSB.one)
-        AddSymbol(LSB.clk)
+        _ = AddSymbol(nil); NILL = SymbolFound(nil)
+        _ = AddSymbol(Var); LVAR = SymbolFound(Var)
+        _ = AddSymbol(sig); SIG = SymbolFound(sig)
+        _ = AddSymbol(LSB.zero)
+        _ = AddSymbol(LSB.one)
+        _ = AddSymbol(LSB.clk)
     } // AddDefaultSymbols
     
     static func Init () {
@@ -130,7 +130,7 @@ class LST {
         AddDefaultSymbols()	/* add the standard predefined symbols */
     } // Init
     
-    static func Import (modName: String) {
+    static func Import (_ modName: String) {
         var fname : String
         var v: LSB.Signal?
         
@@ -151,11 +151,11 @@ class LST {
     
     /*----------------- Export --------------------*/
     
-    static func Write (s : SHORTINT) {
+    static func Write (_ s : SHORTINT) {
         Files.WriteChar(f!, ch: s)
     } // Write
     
-    static func WriteNum (lint: INTEGER) {
+    static func WriteNum (_ lint: INTEGER) {
         /** Write integers in a compressed and portable format.  */
         var lint = lint
         while lint < -64 || lint > 63 {
@@ -165,11 +165,11 @@ class LST {
         Files.WriteChar(f!, ch:Int8(lint % 128))
     } // WriteNum
     
-    static func WriteString (s: String) {
+    static func WriteString (_ s: String) {
         Files.WriteString(f!, s:s); Write(0)
     } // WriteString
     
-    static func WriteSignal(x: LSB.Signal?) {
+    static func WriteSignal(_ x: LSB.Signal?) {
         var v: INTEGER
         
         if x != nil {
@@ -193,7 +193,7 @@ class LST {
         }
     } // WriteSignal
     
-    static func Export (modName: String) {
+    static func Export (_ modName: String) {
         var fname : String
         
         Init()
@@ -207,7 +207,7 @@ class LST {
         WriteSignal(LSB.org)
         
         /* output as C file */
-        Files.DumpToC(f!)
+        _ = Files.DumpToC(f!)
         Files.Close(f!)
     } // Export;
     

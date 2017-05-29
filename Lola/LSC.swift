@@ -67,7 +67,7 @@ class LSC {
     static let one     = Item(t: LSC.lit, v: 1)
     static let clock   = Item(t: LSC.lit, v: 2)
     
-    static func NewObj(scope: Object, classv: SHORTINT) -> Object {
+    static func NewObj(_ scope: Object, classv: SHORTINT) -> Object {
         var new, x: Object?
         x = scope; guard0.name = LSS.id
         while x!.next!.name != LSS.id { x = x!.next }
@@ -79,7 +79,7 @@ class LSC {
         return new!
     } //NewObj
     
-    static func This(scope: Object) -> Object {
+    static func This(_ scope: Object) -> Object {
         var x: Object?
         guard0.name = LSS.id; x = scope.next
         while x!.name != LSS.id { x = x!.next }
@@ -87,7 +87,7 @@ class LSC {
         return x!
     } //This
     
-    static func ThisField(list: Object?) -> Object {
+    static func ThisField(_ list: Object?) -> Object {
         var list = list
         guard0.name = LSS.id
         while list!.name != LSS.id { list = list!.next }
@@ -97,7 +97,7 @@ class LSC {
         return list!
     } //ThisField;
     
-    static func Remove(obj: Object) {
+    static func Remove(_ obj: Object) {
         var x: Object?
         x = localScope
         while x!.next !== guard0 && x!.next !== obj { x = x!.next }
@@ -106,17 +106,17 @@ class LSC {
 
 	/* -------------------- Parser ---------------------*/
 
-    static func New(tag: SHORTINT, _ a: Item?, _ b: Item?) -> Item {
+    static func New(_ tag: SHORTINT, _ a: Item?, _ b: Item?) -> Item {
 		let z = Item(t: tag, v: 0)
         z.a = a; z.b = b; return z
 	} //New
 	
-    static func check(x: Item?) {
+    static func check(_ x: Item?) {
         /*verify that type is a signal*/
 		if x != nil && x!.tag > LSC.oc { LSS.Mark(44) }
 	} //check
 
-    static func selector(inout x: Item?, inout _ t: Item?) {
+    static func selector(_ x: inout Item?, _ t: inout Item?) {
 		var obj: Object
         var z, y, ty, tz: Item?
 	
@@ -162,7 +162,7 @@ class LSC {
 		}
 	} //selector
 	
-    static func factor(inout r: Item?, inout _ t: Item?) {
+    static func factor(_ r: inout Item?, _ t: inout Item?) {
         var x, y, z: Item?
         t = bitType
 		if sym == LSS.Symbols.ident {
@@ -222,11 +222,11 @@ class LSC {
 		}
 	} //factor
 
-    static func checkT(t0: SHORTINT, _ t1: SHORTINT) {
+    static func checkT(_ t0: SHORTINT, _ t1: SHORTINT) {
 		if !(t0 <= LSC.oc && t1 <= LSC.oc || t0 == LSC.integer && t1 == LSC.integer) { LSS.Mark(44) }
 	} //checkT
 	
-    static func term(inout x: Item?, inout _ t: Item?) {
+    static func term(_ x: inout Item?, _ t: inout Item?) {
 		var tag: SHORTINT
         var y, yt: Item?
 	
@@ -246,7 +246,7 @@ class LSC {
 		}
 	} //term
 	
-    static func expression(inout x: Item?, inout _ t: Item?) {
+    static func expression(_ x: inout Item?, _ t: inout Item?) {
 		var tag: SHORTINT
         var y, yt: Item?
 	
@@ -269,7 +269,7 @@ class LSC {
 		}
 	} //expression;
 	
-    static func condition(inout x: Item) {
+    static func condition(_ x: inout Item) {
 		var tag: SHORTINT
         var y, z, t: Item?
         expression(&y, &t)
@@ -289,7 +289,7 @@ class LSC {
 		}
 	} //condition;
 	
-    static func parameter(fp: Object, inout _ par: Item?) {
+    static func parameter(_ fp: Object, _ par: inout Item?) {
 		var ftyp, eltyp, par0, par1: Item
         var x, y, atyp: Item?
         ftyp = fp.a!
@@ -316,7 +316,7 @@ class LSC {
 		par = New(LSC.next, x, nil)
 	} //parameter;
 
-    static func position(vtyp: Item, inout _ x: Item?) {
+    static func position(_ vtyp: Item, _ x: inout Item?) {
         var z, y, t: Item?
         
 		if sym == LSS.Symbols.lbrak {
@@ -344,17 +344,17 @@ class LSC {
 		}
 	} //position
 
-    static func StatSequence(inout seq: Item?) {
+    static func StatSequence(_ seq: inout Item?) {
 		var tag: SHORTINT; var fp, obj: Object?
         var x, y, z, s, ss, xtyp, ytyp, ztyp, ap: Item?
 
-        func IfPart(inout s: Item?) {
+        func IfPart(_ s: inout Item?) {
             var x = Item(t: LSC.bit, v: 0); var y, z: Item?
             condition(&x); y = nil; z = nil
 			if sym == LSS.Symbols.then { LSS.Get(&sym) } else { LSS.Mark(22) }
 			StatSequence(&y)
 			if sym == LSS.Symbols.elsif { LSS.Get(&sym); IfPart(&z); z = New(LSC.next, z, nil)
-			} else if sym == LSS.Symbols.Else { LSS.Get(&sym); StatSequence(&z)
+			} else if sym == LSS.Symbols.else { LSS.Get(&sym); StatSequence(&z)
 			} else { z = nil
 			}
 			s = New(LSC.if0, x, New(LSC.if1, y, z))
@@ -406,10 +406,10 @@ class LSC {
 					}
 				} else { LSS.Mark(21)
 				}
-			} else if sym == LSS.Symbols.If {
+			} else if sym == LSS.Symbols.if {
 				LSS.Get(&sym); IfPart(&s)
 				if sym == LSS.Symbols.end { LSS.Get(&sym) } else { LSS.Mark(26) }
-			} else if sym == LSS.Symbols.For {
+			} else if sym == LSS.Symbols.for {
 				LSS.Get(&sym);
 				if sym == LSS.Symbols.ident {
 					obj = NewObj(localScope, classv: LSC.par); obj!.a = intType; LSS.Get(&sym)
@@ -419,7 +419,7 @@ class LSC {
 					if sym == LSS.Symbols.to { LSS.Get(&sym) } else { LSS.Mark(23) }
 					expression(&y, &ytyp)
 					if ytyp !== intType { LSS.Mark(39) }
-					if sym == LSS.Symbols.Do { LSS.Get(&sym) } else { LSS.Mark(27) }
+					if sym == LSS.Symbols.do { LSS.Get(&sym) } else { LSS.Mark(27) }
 					z = nil; StatSequence(&z)
 					s = New(LSC.for0, obj, New(LSC.for1, x, New(LSC.for2, y, z)));
 					Remove(obj!)
@@ -428,7 +428,7 @@ class LSC {
 			}
 			if s != nil { ss = New(LSC.next, s, ss) }
 			if sym == LSS.Symbols.semicolon { LSS.Get(&sym)
-			} else if sym <= LSS.Symbols.ident || sym == LSS.Symbols.If || sym == LSS.Symbols.For { LSS.Mark(24)
+			} else if sym <= LSS.Symbols.ident || sym == LSS.Symbols.if || sym == LSS.Symbols.for { LSS.Mark(24)
 			} else { break
 			}
 		} while true
@@ -439,17 +439,17 @@ class LSC {
 
 	/*---------------------------------------------------*/
 	
-    static func IdentList(classv: SHORTINT, inout _ first: Object?) {
+    static func IdentList(_ classv: SHORTINT, _ first: inout Object?) {
         first = NewObj(localScope, classv: classv); LSS.Get(&sym)
 		while sym == LSS.Symbols.comma {
 			LSS.Get(&sym);
-			if sym == LSS.Symbols.ident { NewObj(localScope, classv: classv); LSS.Get(&sym)
+			if sym == LSS.Symbols.ident { _ = NewObj(localScope, classv: classv); LSS.Get(&sym)
 			} else { LSS.Mark(10)
 			}
 		}
 	} //IdentList
 
-    static func TypParam(fp: Object?, inout _ typ: Item?) {
+    static func TypParam(_ fp: Object?, _ typ: inout Item?) {
 		var x, t: Item?
 		if fp!.tag != LSC.par { LSS.Mark(36) }
 		expression(&x, &t)
@@ -457,7 +457,7 @@ class LSC {
 		typ = New(LSC.next, x, nil)
 	} //TypParam
 
-    static func Type(inout x: Item?, _ forms: Set<SHORTINT>) {
+    static func Type(_ x: inout Item?, _ forms: Set<SHORTINT>) {
 		var t, y, z: Item?; var obj, fp: Object?
 	
 		if sym == LSS.Symbols.lbrak {
@@ -494,7 +494,7 @@ class LSC {
 		}
 	} //Type
 
-    static func FormalType(inout x: Item?, _ forms: Set<SHORTINT>) {
+    static func FormalType(_ x: inout Item?, _ forms: Set<SHORTINT>) {
 		var y, z, t: Item?
 	
 		if sym == LSS.Symbols.lbrak {
@@ -538,7 +538,7 @@ class LSC {
 		}
 	} //PosDecl;
 
-    static func ParDecl(classv: SHORTINT, _ forms: Set<SHORTINT>) {
+    static func ParDecl(_ classv: SHORTINT, _ forms: Set<SHORTINT>) {
         var list: Object?; var obj: Object?; var type: Item?
 	
 		while sym == LSS.Symbols.ident {
@@ -551,7 +551,7 @@ class LSC {
 		}
 	} //ParDecl;
 
-    static func VarDecl(classv: SHORTINT, _ forms: Set<SHORTINT>) {
+    static func VarDecl(_ classv: SHORTINT, _ forms: Set<SHORTINT>) {
         var list: Object?; var obj: Object?; var type: Item?
 	
 		while sym == LSS.Symbols.ident {
@@ -580,10 +580,10 @@ class LSC {
 			}
 			if sym == LSS.Symbols.semicolon { LSS.Get(&sym) } else { LSS.Mark(24) }
 			if sym == LSS.Symbols.const { LSS.Get(&sym); ConstDecl() }
-			if sym == LSS.Symbols.In { LSS.Get(&sym); ParDecl(LSC.in0, [LSC.bit]) }
-			if sym == LSS.Symbols.Inout { LSS.Get(&sym); ParDecl(LSC.io, [LSC.ts, LSC.oc]) }
+			if sym == LSS.Symbols.in { LSS.Get(&sym); ParDecl(LSC.in0, [LSC.bit]) }
+			if sym == LSS.Symbols.inout { LSS.Get(&sym); ParDecl(LSC.io, [LSC.ts, LSC.oc]) }
 			if sym == LSS.Symbols.out { LSS.Get(&sym); VarDecl(LSC.out, [LSC.bit]) }
-			if sym == LSS.Symbols.Var { LSS.Get(&sym); VarDecl(LSC.var0, [LSC.bit, LSC.ts, LSC.oc, LSC.record]) }
+			if sym == LSS.Symbols.var { LSS.Get(&sym); VarDecl(LSC.var0, [LSC.bit, LSC.ts, LSC.oc, LSC.record]) }
 			this!.a = localScope.next
 			if sym == LSS.Symbols.begin { LSS.Get(&sym); StatSequence(&this!.b) }
 			if sym == LSS.Symbols.end { LSS.Get(&sym) } else { LSS.Mark(26) }
@@ -595,7 +595,7 @@ class LSC {
 		}
 	} //TypeDecl
 
-    static func Module (name: String) {
+    static func Module (_ name: String) {
 		var t, clk, rst: Item?
         print("compiling Lola ", terminator: "")
 		globalScope.next = guard0; body = nil; clk = nil;
@@ -614,10 +614,10 @@ class LSC {
 			} //;
 			localScope.next = guard0;
 			if sym == LSS.Symbols.const { LSS.Get(&sym); ConstDecl() } //;
-			if sym == LSS.Symbols.In { LSS.Get(&sym); VarDecl(LSC.in0, [LSC.bit]) } //;
-			if sym == LSS.Symbols.Inout { LSS.Get(&sym); VarDecl(LSC.io, [LSC.ts, LSC.oc]) } //;
+			if sym == LSS.Symbols.in { LSS.Get(&sym); VarDecl(LSC.in0, [LSC.bit]) } //;
+			if sym == LSS.Symbols.inout { LSS.Get(&sym); VarDecl(LSC.io, [LSC.ts, LSC.oc]) } //;
 			if sym == LSS.Symbols.out { LSS.Get(&sym); VarDecl(LSC.out, [LSC.bit]) } //;
-			if sym == LSS.Symbols.Var { LSS.Get(&sym); VarDecl(LSC.var0, [LSC.bit, LSC.ts, LSC.oc, LSC.record]) } //;
+			if sym == LSS.Symbols.var { LSS.Get(&sym); VarDecl(LSC.var0, [LSC.bit, LSC.ts, LSC.oc, LSC.record]) } //;
 			if sym == LSS.Symbols.pos { LSS.Get(&sym); PosDecl() };
 			if sym == LSS.Symbols.clock {
 				LSS.Get(&sym); expression(&clk, &rst); check(t)

@@ -23,13 +23,13 @@ class LSS {
         times = 4, div = 5, mod = 6, plus = 7, minus = 8,
         eql = 10, neq = 11, lss = 12, leq = 13, gtr = 14, geq = 15,
         period = 18, comma = 19, colon = 20, rparen = 22, rbrak = 23,
-        then = 24, Do = 25, to = 26,
+        then = 24, `do` = 25, to = 26,
         lparen = 27, lbrak = 28, becomes = 29, pos = 30,
         ident = 31, number = 32, zero = 33, one = 34,
         reg = 35, latch = 36, sr = 37, mux = 38, bar = 39,
-        semicolon = 40, end = 41, Else = 42, elsif = 43, If = 44, For = 45, clock = 46, reset = 47,
-        integer = 48, bit = 49, ts = 50, oc = 51, type = 52, In = 53, Inout = 54,
-        out = 55, spos = 56, const = 57, Var = 58, begin = 59, Import = 60, module = 61, eof = 62
+        semicolon = 40, end = 41, `else` = 42, elsif = 43, `if` = 44, `for` = 45, clock = 46, reset = 47,
+        integer = 48, bit = 49, ts = 50, oc = 51, type = 52, `in` = 53, `inout` = 54,
+        out = 55, spos = 56, const = 57, `var` = 58, begin = 59, `import` = 60, module = 61, eof = 62
     }
     
     typealias Ident = String
@@ -47,7 +47,7 @@ class LSS {
     static var key: [String] = []
     static var symno: [Symbols] = []
     
-    static func Mark (num: INTEGER) {
+    static func Mark (_ num: INTEGER) {
         var fpos: LONGINT;
         
         fpos = Files.Tell(R)
@@ -59,13 +59,13 @@ class LSS {
         errpos = fpos; error = true
     } // Mark
     
-    static func Read (inout ch: CHAR) {
+    static func Read (_ ch: inout CHAR) {
         if Files.Eof(R) { ch = "\0"; return }
         ch = Files.ReadChar(&R); chpos += 1
         if (ch == EOL) { line += 1; chpos = 1 }
     } // Read
     
-    static func Get (inout sym: Symbols) {
+    static func Get (_ sym: inout Symbols) {
         
         func Ident() {
             var i: INTEGER
@@ -190,7 +190,7 @@ class LSS {
         }
     } // Get
 
-    static func Init (fname: String) {
+    static func Init (_ fname: String) {
         error = false; errpos = 0; chpos = 1; line = 1
         if let file = Files.Open(fname, mode:"r") { R = file }
         else { print(""); print("Couldn't open \(fname)!") }
@@ -202,16 +202,16 @@ class LSS {
         Enter("CLOCK", LSS.Symbols.clock)
         Enter("CONST", LSS.Symbols.const)
         Enter("DIV", LSS.Symbols.div)
-        Enter("DO", LSS.Symbols.Do)
-        Enter("ELSE", LSS.Symbols.Else)
+        Enter("DO", LSS.Symbols.do)
+        Enter("ELSE", LSS.Symbols.else)
         Enter("ELSIF", LSS.Symbols.elsif)
         Enter("END", LSS.Symbols.end)
         Enter("EXP", LSS.Symbols.exp)
-        Enter("FOR", LSS.Symbols.For)
-        Enter("IF", LSS.Symbols.If)
-        Enter("IMPORT", LSS.Symbols.Import)
-        Enter("IN", LSS.Symbols.In)
-        Enter("INOUT", LSS.Symbols.Inout)
+        Enter("FOR", LSS.Symbols.for)
+        Enter("IF", LSS.Symbols.if)
+        Enter("IMPORT", LSS.Symbols.import)
+        Enter("IN", LSS.Symbols.in)
+        Enter("INOUT", LSS.Symbols.inout)
         Enter("LATCH", LSS.Symbols.latch)
         Enter("LOG", LSS.Symbols.log)
         Enter("MOD", LSS.Symbols.mod)
@@ -227,7 +227,7 @@ class LSS {
         Enter("TO", LSS.Symbols.to)
         Enter("TS", LSS.Symbols.ts)
         Enter("TYPE", LSS.Symbols.type)
-        Enter("VAR", LSS.Symbols.Var)
+        Enter("VAR", LSS.Symbols.var)
         key.append("~ ")
         
         AddError(0, "undefined identifier")
@@ -278,11 +278,11 @@ class LSS {
         AddError(49, "illegal TS-assignment to a non-bus")
     } // Init
     
-    static func Enter(word: String, _ val: Symbols) {
+    static func Enter(_ word: String, _ val: Symbols) {
        key.append(word); symno.append(val)
     } // Enter;
     
-    static func AddError(pos: INTEGER, _ str: String) {
+    static func AddError(_ pos: INTEGER, _ str: String) {
         errors.append(str)
     } // AddError;
 

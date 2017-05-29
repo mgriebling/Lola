@@ -16,14 +16,14 @@ class Simulator {
 
 	static var rorg: LSB.Signal?  /*register list*/
 	static var sym: String = "01+x"
-    static let Undef = [SHORTINT](count: 4, repeatedValue: undef)
-    static let Undef2 = [[SHORTINT]](count: 4, repeatedValue: Undef)
+    static let Undef = [SHORTINT](repeating: undef, count: 4)
+    static let Undef2 = [[SHORTINT]](repeating: Undef, count: 4)
 	static var and = Undef2
     static var or  = Undef2
     static var xor = Undef2
 	static var not = Undef
 
-    static func value(s: LSB.Signal?) -> SHORTINT {
+    static func value(_ s: LSB.Signal?) -> SHORTINT {
         var w: SHORTINT = 0; var h: SHORTINT
 	
 		if let s = s {
@@ -69,7 +69,7 @@ class Simulator {
 		return w
 	} // value
 
-	static func assign(v: LSB.Variable) {
+	static func assign(_ v: LSB.Variable) {
 		var lnk, tsg: LSB.Signal?
         var w, h: SHORTINT
 	
@@ -106,7 +106,7 @@ class Simulator {
 		}
 	} // assign
 
-	static func evaluate(v: LSB.Variable?) {
+	static func evaluate(_ v: LSB.Variable?) {
         /*compute new values of variables*/
         var v = v
 		if BaseTyps.contains(v!.fct) {
@@ -117,7 +117,7 @@ class Simulator {
 		} //
 	} // evaluate;
 
-	static func initval(v: LSB.Variable?) {
+	static func initval(_ v: LSB.Variable?) {
         var v = v
 		if BaseTyps.contains(v!.fct) {
 			if v!.x != nil { v!.val = LSB.black } //
@@ -127,14 +127,14 @@ class Simulator {
 		} //
 	} // initval;
     
-    static func OutChar(c: Character) { print(c, terminator:"") }
-    static func OutString(s: String)  { print(s, terminator:"") }
+    static func OutChar(_ c: Character) { print(c, terminator:"") }
+    static func OutString(_ s: String)  { print(s, terminator:"") }
 
-	static func listinverse(v: LSB.Variable?) {
+	static func listinverse(_ v: LSB.Variable?) {
         if v != nil { listinverse(v!.next); OutChar(sym[Int(v!.val)]) } //
 	} // listinverse;
 
-	static func list(v: LSB.Variable?) {
+	static func list(_ v: LSB.Variable?) {
         var v = v
 		if BaseTyps.contains(v!.fct) {
 			if v!.u == 0 { OutChar(sym[Int(v!.val)]); OutChar(Tab) } //
@@ -147,7 +147,7 @@ class Simulator {
 		} //
 	} // list;
 
-    static func Step (step : INTEGER) {
+    static func Step (_ step : INTEGER) {
 		var i: LONGINT; var r, rg: LSB.Signal?
 	
 		if LSB.org != nil {
@@ -180,7 +180,7 @@ class Simulator {
 		} //
 	} // Reset;
 
-    static func start1(s: LSB.Signal?) {
+    static func start1(_ s: LSB.Signal?) {
 		var rg: LSB.Signal;
 	
 		if s != nil && !(s is LSB.Variable) {
@@ -190,7 +190,7 @@ class Simulator {
 		} //
 	} // start1;
 
-    static func start0(v: LSB.Variable?) {
+    static func start0(_ v: LSB.Variable?) {
         var v = v
 		if BaseTyps.contains(v!.fct) { start1(v!.x)
 			if v!.x != nil { v!.val = LSB.black } //
@@ -207,13 +207,13 @@ class Simulator {
 		}
 	} // Start
 
-    static func Set (nameValue: String) {
+    static func Set (_ nameValue: String) {
         var v: LSB.Variable?
 		var value: INTEGER
 		var name: LSB.Name
 	
 		/* extract the name and value from the nameValue input string */
-		let values = nameValue.componentsSeparatedByString(" ")
+		let values = nameValue.components(separatedBy: " ")
 		if values.count == 1 {
             value = 0; name = nameValue
 		} else {
@@ -237,7 +237,7 @@ class Simulator {
 		print("")
 	} // Set
 
-	static func lab(v: LSB.Variable?) {
+	static func lab(_ v: LSB.Variable?) {
         var v = v
 		if v!.u == 0 { LSB.WriteName(v!); OutChar(Tab) }
 		if Struct.contains(v!.fct) {
@@ -252,7 +252,7 @@ class Simulator {
 		}
 	} // Label
 
-	static func clrsel(v: LSB.Variable?) {
+	static func clrsel(_ v: LSB.Variable?) {
         var v = v
         v!.u = 1;
 		if Struct.contains(v!.fct) {
@@ -265,12 +265,12 @@ class Simulator {
 		if LSB.org != nil { clrsel(LSB.org) } //
 	} // ClearSelect;
 
-    static func Select (name: String) {
+    static func Select (_ name: String) {
 		var i: LONGINT; var v: LSB.Variable?
 	
 		if LSB.org != nil {
 			i = 0
-            let names = name.componentsSeparatedByCharactersInSet(NSCharacterSet.whitespaceCharacterSet())
+            let names = name.components(separatedBy: CharacterSet.whitespaces)
             for name in names where i < 14 {
 				v = LSB.This(LSB.org!, name)
 				if v != nil { v!.u = 0; i += 1 }
@@ -299,10 +299,10 @@ class Simulator {
     }
     
     static func InChar() -> Character {
-        let keyboard = NSFileHandle.fileHandleWithStandardInput()
-        let data = keyboard.readDataOfLength(1)
-        var buffer = [CChar](count: 1, repeatedValue: 0)
-        data.getBytes(&buffer, length: 1)
+        let keyboard = FileHandle.standardInput
+        let data = keyboard.readData(ofLength: 1)
+        var buffer = [CChar](repeating: 0, count: 1)
+        (data as NSData).getBytes(&buffer, length: 1)
         return Character(Int(buffer[0]))
     }
 
@@ -315,16 +315,16 @@ class Simulator {
         print("  x                   - Exit simulator"); print("")
 	} // DisplayCommands;
 
-	static func RemoveLeadingSpaces(inout s: String) {
+	static func RemoveLeadingSpaces(_ s: inout String) {
 		/* remove leading spaces in s */
-		while s.hasPrefix(" ") { s.removeAtIndex(s.startIndex) } //
+		while s.hasPrefix(" ") { s.remove(at: s.startIndex) } //
 	} // RemoveLeadingSpaces
 
-	static func GetString (inout s: String) {
+	static func GetString (_ s: inout String) {
 		s = InLine(); RemoveLeadingSpaces(&s)
 	} // GetString;
 
-	static func GetInt (inout n: INTEGER) {
+	static func GetInt (_ n: inout INTEGER) {
         var numb: LSB.Name = ""
 		GetString(&numb);
 		if let m = INTEGER(numb) { n = m }

@@ -33,8 +33,8 @@ class LSB {
     }
 
     class Variable : Signal {
-		var name: Name = ""
-		var classv: SHORTINT = LSB.In
+		var name = ""
+		var classv = LSB.In
 		var next, dsc: Variable?
         
         init (name: String) {
@@ -44,33 +44,33 @@ class LSB {
         override init () {}
     }
 
-    static let arrayRecordSet = Set<SHORTINT>(arrayLiteral: LSB.array, LSB.record)
+    static let arrayRecordSet = Set<SHORTINT>(arrayLiteral: array, record)
 	static var org : Variable?
     static let zero = Variable(name: "'0")
     static let one = Variable(name: "'1")
     static let clk = Variable(name: "CK")
 	static var reset: Signal?
-	static var change: BOOLEAN = false
+	static var change = false
 	static let opcode = "BTONARX!~*+-:,^:$%|,"
 
 	static func Init() {
         org = nil; reset = nil; clk.x = nil
 	}
     
-    static func OutString(s: String)  { print(s, terminator:"") }
+    static func OutString(_ s: String)  { print(s, terminator:"") }
 
-    static func WriteName (v: Variable) {
+    static func WriteName (_ v: Variable) {
 		var w: Signal?
         w = v.y
         if (w != nil) && (w !== org) { WriteName(w as! Variable); OutString(".") }
 		OutString(v.name)
 	}
 
-    static func This (org: Variable, _ name: String) -> Variable? {
+    static func This (_ org: Variable, _ name: String) -> Variable? {
 		var v: Variable?; var i, j: INTEGER
         var id: String
         v = org.dsc; i = 0; id = ""
-		repeat { j = 0;
+		repeat { j = 0
 			while (name[i] > " ") && (name[i] != ".") { id.append(name[i]); j += 1; i += 1 }
 			while (v != nil) && (v!.name != id) { v = v!.next }
 			if name[i] == "." {
@@ -85,12 +85,12 @@ class LSB {
 		return v
 	}
 
-    static func New (f: SHORTINT, _ x: Signal?, _ y: Signal?) -> Signal {
+    static func New (_ f: SHORTINT, _ x: Signal?, _ y: Signal?) -> Signal {
 		let z = Signal()
         z.fct = f; z.x = x; z.y = y; return z
 	}
 
-    static func NewVar (f: SHORTINT, _ val: SHORTINT, _ x: Signal?, _ y: Signal?, _ next: Variable?, _ name: String) -> Variable {
+    static func NewVar (_ f: SHORTINT, _ val: SHORTINT, _ x: Signal?, _ y: Signal?, _ next: Variable?, _ name: String) -> Variable {
 		let v = Variable(name: name)
         v.fct = f; v.val = val; v.x = x; v.y = y; v.u = -1; v.v = -1
 		v.next = next; return v
@@ -98,7 +98,7 @@ class LSB {
 
 	/*----------------- Simplify --------------------*/
 
-    static func traverse(inout s: Signal?) {
+    static func traverse(_ s: inout Signal?) {
 		var z: Signal
 		if s != nil {
 			if s is Variable {
@@ -137,9 +137,9 @@ class LSB {
                     if s!.x === zero { s = s!.y!.x
                     } else if s!.x === one { s = s!.y!.y
                     } else if s!.y!.x === zero { s!.fct = LSB.and; s!.y = s!.y!.y; traverse(&s)
-                    } else if s!.y!.x === one { s!.fct = LSB.or; z = s!.y!; s!.y = z.y;
+                    } else if s!.y!.x === one { s!.fct = LSB.or; z = s!.y!; s!.y = z.y
                         z.fct = LSB.not; z.x = nil; z.y = s!.x; s!.x = z; traverse(&s)
-                    } else if s!.y!.y === zero { s!.fct = LSB.and; z = s!.y!; s!.y = z.x;
+                    } else if s!.y!.y === zero { s!.fct = LSB.and; z = s!.y!; s!.y = z.x
                         z.fct = LSB.not; z.x = nil; z.y = s!.x; s!.x = z; traverse(&s!.x)
                     } else if s!.y!.y === one { s!.fct = LSB.or; s!.y = s!.y!.x
                     }
@@ -164,7 +164,7 @@ class LSB {
 		}
 	}
 
-	static func simp(v: Variable?) {
+	static func simp(_ v: Variable?) {
         var v = v
 		if arrayRecordSet.contains(v!.fct) {
             v = v!.dsc
@@ -177,7 +177,7 @@ class LSB {
 		}
 	}
 
-    static func Simplify (org: Variable) {
+    static func Simplify (_ org: Variable) {
 		var n: INTEGER;
         n = 0;
         repeat { n += 1; change = false; simp(org) } while change
@@ -185,7 +185,7 @@ class LSB {
 
 	/*----------------- Find Loops --------------------*/
 
-	static func Loop(s: Signal?) {
+	static func Loop(_ s: Signal?) {
 		if s != nil {
 			if s is Variable {
 				if s!.val == black { s!.val = grey; Loop(s!.x); s!.val = 0
@@ -199,7 +199,7 @@ class LSB {
 		}
 	}
 
-	static func Loops (v: Variable?) {
+	static func Loops (_ v: Variable?) {
         var v = v
 		if arrayRecordSet.contains(v!.fct) {
             v = v!.dsc
@@ -210,7 +210,7 @@ class LSB {
 
 	/*----------------- Show --------------------*/
 
-    static func ShowTree(x: Signal?) {
+    static func ShowTree(_ x: Signal?) {
         var f: SHORTINT
 		if x != nil {
 			if x is Variable { WriteName(x as! Variable)
@@ -222,7 +222,7 @@ class LSB {
 		}
 	}
 
-    static func Show (x: Variable?) {
+    static func Show (_ x: Variable?) {
         var x = x
 		let typ = x!.fct
 		if arrayRecordSet.contains(typ) {
@@ -240,6 +240,6 @@ class LSB {
 
 	/*----------------- Open --------------------*/
 
-	static func Assign (v: Variable) { org = v }
+	static func Assign (_ v: Variable) { org = v }
 
 }

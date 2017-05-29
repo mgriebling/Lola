@@ -9,16 +9,16 @@ class Lola {
     static var scope: LSB.Variable?; static var clk: LSB.Signal?
     static var null: String = ""
     
-    static func OutString(s: String)  { print(s, terminator:"") }
+    static func OutString(_ s: String)  { print(s, terminator:"") }
     
-    static func Log(x: INTEGER) -> INTEGER {
+    static func Log(_ x: INTEGER) -> INTEGER {
         var y, e: INTEGER
         e = 0; y = 1
         while x > y { y = 2*y; e += 1 }
         return e
     } // Log
     
-    static func V(x: LSC.Item?) -> INTEGER {
+    static func V(_ x: LSC.Item?) -> INTEGER {
         var y: INTEGER = 0; var v: LSB.Variable?; var id: LSB.Name
         if x is LSC.Object {
             v = scope; id = (x as! LSC.Object).name
@@ -41,16 +41,16 @@ class Lola {
         return y
     } // V
     
-    static func Index(n: INTEGER, inout _ name: String) {
+    static func Index(_ n: INTEGER, _ name: inout String) {
         var i, j: INTEGER
         var n = n
-        var d = [INTEGER](count: 4, repeatedValue: 0)
+        var d = [INTEGER](repeating: 0, count: 4)
         i = 0; j = 0; name = ""
         repeat { d[i] = n % 10; i += 1; n = n / 10 } while n != 0
         repeat { i -= 1; name.append(Character(d[i] + 0x30)); j += 1 } while i != 0
     } // Index
     
-    static func NewVar(typ: LSC.Item, _ mode: INTEGER, _ id: String, _ link: LSB.Variable?, _ anc: LSB.Variable) -> LSB.Variable {
+    static func NewVar(_ typ: LSC.Item, _ mode: INTEGER, _ id: String, _ link: LSB.Variable?, _ anc: LSB.Variable) -> LSB.Variable {
         var form: SHORTINT; var len: INTEGER
         var fp: LSC.Object?; var ap: LSC.Item?
         var v, tempscope: LSB.Variable
@@ -79,7 +79,7 @@ class Lola {
         return v
     } // NewVar
     
-    static func E(x: LSC.Item) -> LSB.Signal {
+    static func E(_ x: LSC.Item) -> LSB.Signal {
         var y = LSB.Signal(); var u, v: LSB.Variable?
         var k, n: INTEGER; var id: LSB.Name
         /* tag = x.tag; */
@@ -124,7 +124,7 @@ class Lola {
         return y
     } // E
     
-    static func Link(fp: LSB.Variable, _ ap: LSB.Signal) {
+    static func Link(_ fp: LSB.Variable, _ ap: LSB.Signal) {
         var fel, ael: LSB.Variable?; var n: INTEGER;
         
         if fp.x != nil {
@@ -141,7 +141,7 @@ class Lola {
         }
     } // Link
     
-    static func AssignPos(v: LSB.Variable?, _ anc: LSB.Signal, _ x: LSC.Item?) {
+    static func AssignPos(_ v: LSB.Variable?, _ anc: LSB.Signal, _ x: LSC.Item?) {
         var pos: INTEGER
         var v = v
         var x = x
@@ -157,7 +157,7 @@ class Lola {
         }
     } // AssignPos
     
-    static func S(s: LSC.Item?) {
+    static func S(_ s: LSC.Item?) {
         var s = s
         var tag, lim, u, v: INTEGER
         var cond, cv: LSC.Item;
@@ -251,7 +251,7 @@ class Lola {
         if LSB.org != nil { LSB.Show(LSB.org) }
     } // Show;
     
-    static func Compile (Args: [String]) {
+    static func Compile (_ Args: [String]) {
         var name: String
         
         for arg in 1..<Args.count {
