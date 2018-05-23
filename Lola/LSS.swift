@@ -59,7 +59,7 @@ class LSS {
         errpos = fpos; error = true
     } // Mark
     
-    static func Read (_ ch: inout CHAR) {
+    static func Read () {
         if Files.Eof(R) { ch = "\0"; return }
         ch = Files.ReadChar(&R); chpos += 1
         if (ch == EOL) { line += 1; chpos = 1 }
@@ -72,11 +72,11 @@ class LSS {
             i = 0; id = ""
             repeat {
                 if i < IdLen { id.append(ch); i += 1 }
-                Read(&ch)
+                Read()
             } while !( (ch < "0") || (ch > "9") && (ch.uppercase < "A") || (ch.uppercase > "Z"))
             if ch == "'" {
                 if i < IdLen { id.append(ch); i += 1 }
-                Read(&ch)
+                Read()
             } // ;
             if i == IdLen {
                 Mark(2)
@@ -101,80 +101,80 @@ class LSS {
                     val = 10 * val + ch.unicodeValue() - Character("0").unicodeValue()
                 } else { Mark(7); val = 0
                 }
-                Read(&ch)
+                Read()
             } while !(ch < "0" || ch > "9")
         } // Number
         
         func comment () {
-            Read(&ch)
+            Read()
             repeat {
                 repeat {
-                    while ch == "(" { Read(&ch);
+                    while ch == "(" { Read();
                         if ch == "*" { comment() }
                     }
-                    if ch == "*" { Read(&ch); break }
+                    if ch == "*" { Read(); break }
                     if Files.Eof(R) { break }
-                    Read(&ch)
+                    Read()
                 } while true
-                if ch == ")" { Read(&ch); break }
+                if ch == ")" { Read(); break }
                 if Files.Eof(R) { Mark(8); break }
             } while true
         } // comment
         
-        while ch <= " " && !Files.Eof(R) { Read(&ch) }
+        while ch <= " " && !Files.Eof(R) { Read() }
         switch ch {
         case "'":
-            Read(&ch)
+            Read()
             if ch == "0" {
                 sym = LSS.Symbols.zero
             } else {
                 sym = LSS.Symbols.one;
                 if ch != "1" { Mark(9) }
             }
-            Read(&ch)
+            Read()
         case "*":
-            Read(&ch); sym = LSS.Symbols.times
+            Read(); sym = LSS.Symbols.times
         case "+":
-            Read(&ch); sym = LSS.Symbols.plus
+            Read(); sym = LSS.Symbols.plus
         case "-":
-            Read(&ch)
-            if ch == ">" { Read(&ch); sym = LSS.Symbols.bar } else { sym = LSS.Symbols.minus }
+            Read()
+            if ch == ">" { Read(); sym = LSS.Symbols.bar } else { sym = LSS.Symbols.minus }
         case "=":
-            Read(&ch); sym = LSS.Symbols.eql
+            Read(); sym = LSS.Symbols.eql
         case "#":
-            Read(&ch); sym = LSS.Symbols.neq
+            Read(); sym = LSS.Symbols.neq
         case "<":
-            Read(&ch)
-            if ch == "=" { Read(&ch); sym = LSS.Symbols.leq } else { sym = LSS.Symbols.lss }
+            Read()
+            if ch == "=" { Read(); sym = LSS.Symbols.leq } else { sym = LSS.Symbols.lss }
         case ">":
-            Read(&ch);
-            if ch == "=" { Read(&ch); sym = LSS.Symbols.geq } else { sym = LSS.Symbols.gtr }
+            Read();
+            if ch == "=" { Read(); sym = LSS.Symbols.geq } else { sym = LSS.Symbols.gtr }
         case ";":
-            Read(&ch); sym = LSS.Symbols.semicolon
+            Read(); sym = LSS.Symbols.semicolon
         case ",":
-            Read(&ch); sym = LSS.Symbols.comma
+            Read(); sym = LSS.Symbols.comma
         case ":":
-            Read(&ch);
-            if ch == "=" { Read(&ch); sym = LSS.Symbols.becomes
-            } else if  ch == ":" { Read(&ch); sym = LSS.Symbols.pos
+            Read();
+            if ch == "=" { Read(); sym = LSS.Symbols.becomes
+            } else if  ch == ":" { Read(); sym = LSS.Symbols.pos
             } else { sym = LSS.Symbols.colon
             }
         case "." :
-            Read(&ch);
-            if ch == "." { Read(&ch); sym = LSS.Symbols.to } else { sym = LSS.Symbols.period }
+            Read();
+            if ch == "." { Read(); sym = LSS.Symbols.to } else { sym = LSS.Symbols.period }
         case "/":
-            Read(&ch); sym = LSS.Symbols.div
+            Read(); sym = LSS.Symbols.div
         case  "(":
-            Read(&ch);
+            Read();
             if ch == "*" { comment(); Get(&sym) } else { sym = LSS.Symbols.lparen }
         case ")":
-            Read(&ch); sym = LSS.Symbols.rparen
+            Read(); sym = LSS.Symbols.rparen
         case "[":
-            Read(&ch); sym = LSS.Symbols.lbrak
+            Read(); sym = LSS.Symbols.lbrak
         case "]":
-            Read(&ch); sym = LSS.Symbols.rbrak
+            Read(); sym = LSS.Symbols.rbrak
         case  "^":
-            Read(&ch); sym = LSS.Symbols.null
+            Read(); sym = LSS.Symbols.null
         case "0"..."9":
             Number()
         case "A"..."Z":
@@ -182,11 +182,11 @@ class LSS {
         case "a"..."z":
             Ident()
         case  "|":
-            Read(&ch); sym = LSS.Symbols.bar
+            Read(); sym = LSS.Symbols.bar
         case "~":
-            Read(&ch); sym = LSS.Symbols.not
+            Read(); sym = LSS.Symbols.not
         default:
-            Read(&ch); sym = LSS.Symbols.null
+            Read(); sym = LSS.Symbols.null
         }
     } // Get
 
@@ -194,7 +194,7 @@ class LSS {
         error = false; errpos = 0; chpos = 1; line = 1
         if let file = Files.Open(fname, mode:"r") { R = file }
         else { print(""); print("Couldn't open \(fname)!") }
-        Read(&ch)
+        Read()
         
         K = 0
         Enter("BEGIN", LSS.Symbols.begin)

@@ -23,7 +23,7 @@ class Files {
     static func ReadChar(_ f: inout File) -> Character {
         guard let r = f.fin else { return "\0" }
         if r.hasBytesAvailable {
-            var buffer = [UInt8](repeating: 0, count: 1)
+            var buffer = [UInt8(0)]
             if r.read(&buffer, maxLength: 1) == 1 {
                 f.pos += 1
                 return Character(Int(buffer[0]))
@@ -43,7 +43,7 @@ class Files {
     }
     
     static func WriteString(_ f: File, s: String) {
-        for ch in s.characters {
+        for ch in s {
             Files.WriteChar(f, ch: Int8(ch.unicodeValue()))
         }
     }

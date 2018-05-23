@@ -30,27 +30,24 @@ public extension String {
 	
 	// Extensions to make it easier to work with C-style strings
 	
-	public subscript (n: Int) -> Character {
-		get {
-			let s = self.characters.index(self.startIndex, offsetBy: n)
-			if s < self.endIndex {
-				return self[s]
-			}
-			return "\0"
-		}
-		set {
-			let s = self.characters.index(self.startIndex, offsetBy: n)
-			if s < self.endIndex {
-				self = self.substring(to: s) + "\(newValue)" + self.substring(from: self.index(after: s))
-			}
-		}
-	}
-	
-	public func count() -> Int { return self.characters.count }
+    public subscript (n: Int) -> Character {
+        get {
+            if let s = self.index(self.startIndex, offsetBy: n, limitedBy: self.index(before: self.endIndex)) {
+                return self[s]
+            }
+            return "\0"
+        }
+        set {
+            // Strings are immutable so this gets messy and is probably not very efficient
+            if let s = self.index(self.startIndex, offsetBy: n, limitedBy: self.endIndex) {
+                self = self.replacingCharacters(in: s...s, with: String(newValue))
+            }
+        }
+    }
 	
 	public func stringByTrimmingTrailingCharactersInSet (_ characterSet: CharacterSet) -> String {
 		if let rangeOfLastWantedCharacter = self.rangeOfCharacter(from: characterSet.inverted, options:.backwards) {
-			return self.substring(to: rangeOfLastWantedCharacter.upperBound)
+			return String(self[...rangeOfLastWantedCharacter.upperBound])
 		}
 		return ""
 	}
@@ -92,17 +89,20 @@ public extension Character {
     
     public var lowercase : Character {
         let s = String(self)
-        return s.lowercased().characters.first!
+        return s.lowercased().first!
     }
     
     public var uppercase : Character {
         let s = String(self)
-        return s.uppercased().characters.first!
+        return s.uppercased().first!
     }
 	
 	init(_ int: Int) {
-		let s = String(describing: UnicodeScalar(int))
-		self = s[0]
+        if let scalar = UnicodeScalar(int) {
+            self = Character(scalar)
+        } else {
+            self = "\0"
+        }
 	}
 	
 	public func add (_ n: Int) -> Character {
