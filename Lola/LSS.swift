@@ -97,8 +97,8 @@ class LSS {
         func Number () {
             val = 0; sym = LSS.Symbols.number
             repeat {
-                if val <= (LONGINT.max - ch.unicodeValue() + Character("0").unicodeValue()) / 10 {
-                    val = 10 * val + ch.unicodeValue() - Character("0").unicodeValue()
+                if val <= (LONGINT.max - ch.unicodeValue + Character("0").unicodeValue) / 10 {
+                    val = 10 * val + ch.unicodeValue - Character("0").unicodeValue
                 } else { Mark(7); val = 0
                 }
                 Read()

@@ -52,7 +52,7 @@ class LST {
         var c: CHAR;
         
         c = Files.ReadChar(&f!)
-        var si = c.unicodeValue()
+        var si = c.unicodeValue
         if si > 127 { si -= 256 }
         s = SHORTINT(si)
     } // Read
@@ -62,11 +62,11 @@ class LST {
         var s: INTEGER; var x: CHAR; var y: INTEGER;
         
         s=0; y=0; x = Files.ReadChar(&f!)
-        while x.unicodeValue() >= 128 {
-            y += (x.unicodeValue()-128) << s; s += 7
+        while x.unicodeValue >= 128 {
+            y += (x.unicodeValue-128) << s; s += 7
             x = Files.ReadChar(&f!)
         }
-        num = y + (x.unicodeValue() % 64 - x.unicodeValue() / 64 * 64) << s
+        num = y + (x.unicodeValue % 64 - x.unicodeValue / 64 * 64) << s
     } // ReadNum
     
     static func ReadString (_ s : inout String) {

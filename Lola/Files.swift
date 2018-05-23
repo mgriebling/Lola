@@ -44,7 +44,7 @@ class Files {
     
     static func WriteString(_ f: File, s: String) {
         for ch in s {
-            Files.WriteChar(f, ch: Int8(ch.unicodeValue()))
+            Files.WriteChar(f, ch: Int8(ch.unicodeValue))
         }
     }
     

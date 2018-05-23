@@ -32,14 +32,16 @@ public extension String {
 	
     public subscript (n: Int) -> Character {
         get {
-            if let s = self.index(self.startIndex, offsetBy: n, limitedBy: self.index(before: self.endIndex)) {
+            let s = self.index(self.startIndex, offsetBy: n)
+            if s < self.endIndex {
                 return self[s]
             }
             return "\0"
         }
         set {
             // Strings are immutable so this gets messy and is probably not very efficient
-            if let s = self.index(self.startIndex, offsetBy: n, limitedBy: self.endIndex) {
+            let s = self.index(self.startIndex, offsetBy: n)
+            if s < self.endIndex {
                 self = self.replacingCharacters(in: s...s, with: String(newValue))
             }
         }
@@ -57,12 +59,7 @@ public extension String {
         return str.substring(with: NSMakeRange(from, length))
     }
     
-    public func contains (_ s: String) -> Bool {
-        let str : NSString = self as NSString
-        return str.contains(s)
-    }
-    
-    public func Trim() -> String {
+    public func trim() -> String {
         return self.trimmingCharacters(in: CharacterSet.whitespaces)
     }
 	
@@ -70,60 +67,28 @@ public extension String {
 
 public extension Character {
 
-	public func unicodeValue() -> Int {
-		for s in String(self).unicodeScalars {
-			return Int(s.value)
-		}
-		return 0
-	}
+    public var unicodeValue : Int { return Int(unicodeScalar.value) }
+    public var unicodeScalar : UnicodeScalar { return String(self).unicodeScalars.first ?? "\0" }
     
-    public func isLetter() -> Bool {
-        let cSet = CharacterSet.letters
-        return cSet.contains(UnicodeScalar(self.toUnichar())!)
-    }
+    public func isLetter() -> Bool { return CharacterSet.letters.contains(self.unicodeScalar) }
+    public func isAlphanumeric() -> Bool { return CharacterSet.alphanumerics.contains(self.unicodeScalar) }
     
-    public func isAlphanumeric() -> Bool {
-        let cSet = CharacterSet.alphanumerics
-        return cSet.contains(UnicodeScalar(self.toUnichar())!)
-    }
-    
-    public var lowercase : Character {
-        let s = String(self)
-        return s.lowercased().first!
-    }
-    
-    public var uppercase : Character {
-        let s = String(self)
-        return s.uppercased().first!
-    }
+    public var lowercase : Character { return String(self).lowercased().first! }
+    public var uppercase : Character { return String(self).uppercased().first! }
 	
-	init(_ int: Int) {
-        if let scalar = UnicodeScalar(int) {
-            self = Character(scalar)
-        } else {
-            self = "\0"
-        }
-	}
+    init(_ int: Int) { self = Character(UnicodeScalar(int) ?? UnicodeScalar(0)!) }
 	
-	public func add (_ n: Int) -> Character {
-		let newCharacter = self.unicodeValue() + n
-		return Character(newCharacter)
-	}
-	
-	public func toUnichar () -> unichar {
-		// Caution: this won't work for multi-char Characters
-		return [unichar](String(self).utf16).first!
-	}
+    public func add (_ n: Int) -> Character { return Character(self.unicodeValue + n) }
 	
 }
 
-func == (l: Int, r: Character) -> Bool { return l == r.unicodeValue() }
+func == (l: Int, r: Character) -> Bool { return l == r.unicodeValue }
 func == (l: Character, r: Int) -> Bool { return r == l }
-func != (l: Int, r: Character) -> Bool { return l != r.unicodeValue() }
+func != (l: Int, r: Character) -> Bool { return l != r.unicodeValue }
 func != (l: Character, r: Int) -> Bool { return r != l }
 func + (c: Character, inc: Int) -> Character { return c.add(inc) }
 func - (c: Character, inc: Int) -> Character { return c.add(-inc) }
-func - (c: Character, inc: Character) -> Int { return c.add(-inc.unicodeValue()).unicodeValue() }
+func - (c: Character, inc: Character) -> Int { return c.add(-inc.unicodeValue).unicodeValue }
 func += (c: inout Character, inc: Int) { c = c + inc }
 func -= (c: inout Character, inc: Int) { c = c - inc }
 postfix func -- (c: Character) -> Character { return c - 1 }
