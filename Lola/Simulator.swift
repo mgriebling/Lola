@@ -26,40 +26,46 @@ class Simulator {
     static func value(_ s: LSB.Signal?) -> SHORTINT {
         var w: SHORTINT = 0; var h: SHORTINT
 	
-		if let s = s {
+		if let ns = s {
 			if s is LSB.Variable {
-                assign((s as! LSB.Variable)); w = s.val
+                assign(s as! LSB.Variable); w = s!.val
+                if let v = s as? LSB.Variable {
+                    print("\(v.name) = \(w)")
+                }
 			} else {
-				switch s.fct {
-                case 0: break
-				case LSB.or:  w = or[Int(value(s.x))][Int(value(s.y))]
-				case LSB.xor: w = xor[Int(value(s.x))][Int(value(s.y))]
-				case LSB.and: w = and[Int(value(s.x))][Int(value(s.y))]
-				case LSB.not: w = not[Int(value(s.y))]
-				case LSB.mux: h = SHORTINT(value(s.x))
+				switch ns.fct {
+                case LSB.or:  w = or[Int(value(ns.x))][Int(value(ns.y))]; print(" Or \(value(ns.x)), \(value(ns.y)) = \(w)")
+				case LSB.xor: w = xor[Int(value(ns.x))][Int(value(ns.y))]; print(" Xor \(value(ns.x)), \(value(ns.y)) = \(w)")
+				case LSB.and: w = and[Int(value(ns.x))][Int(value(ns.y))]; print(" And \(value(ns.x)), \(value(ns.y)) = \(w)")
+				case LSB.not: w = not[Int(value(ns.y))]; print(" Not \(value(ns.y)) = \(w)")
+				case LSB.mux: h = SHORTINT(value(ns.x))
 						if h == undef { w = undef
-						} else if h == 0 { w = value(s.y!.x)
-						} else { w = value(s.y!.y)
+						} else if h == 0 { w = value(ns.y!.x)
+						} else { w = value(ns.y!.y)
 						}
-				case LSB.reg: w = s.val
-				case LSB.latch: h = value(s.x)
+                    print(" Mux \(value(ns.y!.x)), \(value(ns.y!.y)) = \(w)")
+				case LSB.reg: w = ns.val
+                    print(" Reg = \(w)")
+				case LSB.latch: h = value(ns.x)
 						if h == undef {
                             w = undef
 						} else if h == 0 {
-                            w = s.val
+                            w = ns.val
 						} else {
-                            w = value(s.y); s.val = w
+                            w = value(ns.y); ns.val = w
 						}
-				case LSB.sr: h = value(s.x); w = value(s.y)
+                    print(" Latch = \(w)")
+				case LSB.sr: h = value(ns.x); w = value(ns.y)
 						if h == undef || w == undef {
                             w = undef
 						} else if h == 0 {
-							if w == 0 { w = clash } else { w = 1; s.val = 1 } //
+							if w == 0 { w = clash } else { w = 1; ns.val = 1 } //
 						} else if w == 0 {
-                            w = 0; s.val = 0
+                            w = 0; ns.val = 0
 						} else {
-                            w = s.val
+                            w = ns.val
 						} //
+                    print(" Sr = \(w)")
                 default: break
 				}
 			}
@@ -108,22 +114,20 @@ class Simulator {
 
 	static func evaluate(_ v: LSB.Variable?) {
         /*compute new values of variables*/
-        var v = v
 		if BaseTyps.contains(v!.fct) {
             assign(v!)
 		} else if Struct.contains(v!.fct)  {
-            v = v!.dsc
-			while v != nil { evaluate(v); v = v!.next } //
+            var nv = v!.dsc
+			while nv != nil { evaluate(nv); nv = nv!.next } //
 		} //
 	} // evaluate;
 
 	static func initval(_ v: LSB.Variable?) {
-        var v = v
 		if BaseTyps.contains(v!.fct) {
 			if v!.x != nil { v!.val = LSB.black } //
 		} else if Struct.contains(v!.fct) {
-            v = v!.dsc;
-			while v != nil { initval(v); v = v!.next } //
+            var nv = v!.dsc;
+			while nv != nil { initval(nv); nv = nv!.next } //
 		} //
 	} // initval;
     
@@ -135,15 +139,14 @@ class Simulator {
 	} // listinverse;
 
 	static func list(_ v: LSB.Variable?) {
-        var v = v
 		if BaseTyps.contains(v!.fct) {
 			if v!.u == 0 { OutChar(sym[Int(v!.val)]); OutChar(Tab) } //
-		} else if v!.fct == LSB.record { v = v!.dsc
-			while v != nil { list(v); v = v!.next } //
+		} else if v!.fct == LSB.record { var nv = v!.dsc
+			while nv != nil { list(nv); nv = nv!.next }
 		} else if v!.fct == LSB.array {
-			if v!.u == 0 { listinverse(v!.dsc); OutChar(Tab) } // ;
-			v = v!.dsc
-			while v != nil { list(v); v = v!.next } //
+			if v!.u == 0 { listinverse(v!.dsc); OutChar(Tab) }
+			var nv = v!.dsc
+			while nv != nil { list(nv); nv = nv!.next } //
 		} //
 	} // list;
 
