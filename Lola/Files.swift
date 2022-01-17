@@ -3,24 +3,22 @@
 //  Lola
 //
 //  Created by Mike Griebling on 3 Oct 2015.
-//  Copyright © 2015 Solinst Canada. All rights reserved.
+//  Copyright © 2015 Computer Inspirations. All rights reserved.
 //
 
 import Foundation
 
+public struct File {
+    var name: String = ""
+    var fin: InputStream?
+    var fout: OutputStream?
+    var pos: Int = 0
+    var inMemory: Bool = false
+}
 
-
-class Files {
+public class Files1 {  // somewhere there is a Files type??
     
-    struct File {
-        var name: String = ""
-        var fin: InputStream?
-        var fout: OutputStream?
-        var pos: Int = 0
-        var inMemory: Bool = false
-    }
-    
-    static func ReadChar(_ f: inout File) -> Character {
+    static public func ReadChar(_ f: inout File) -> Character {
         guard let r = f.fin else { return "\0" }
         if r.hasBytesAvailable {
             var buffer = [UInt8(0)]
@@ -32,27 +30,25 @@ class Files {
         return "\0"
     }
     
-    static func WriteChar(_ f: File, ch: Int8) {
+    static public func WriteChar(_ f: File, _ ch: Character) {
         guard let w = f.fout else { return }
-        var lch = Int(ch)
-        if ch < 0 { lch += 256 }
-        var buffer = [UInt8](repeating: UInt8(lch), count: 1)
+        var buffer = [UInt8](repeating: ch.asciiValue!, count: 1)
         if w.hasSpaceAvailable {
-            w.write(&buffer, maxLength: 1)
+            w.write(&buffer, maxLength: buffer.count)
         }
     }
     
-    static func WriteString(_ f: File, s: String) {
+    static public func WriteString(_ f: File, _ s: String) {
         for ch in s {
-            Files.WriteChar(f, ch: Int8(ch.unicodeValue))
+            WriteChar(f, ch)
         }
     }
     
-    static func Eof(_ f: File) -> Bool {
-        return f.fin == nil || !f.fin!.hasBytesAvailable
+    static public func Eof(_ f: File) -> Bool {
+        f.fin == nil || !f.fin!.hasBytesAvailable
     }
     
-    static func Open(_ name: String, mode: String) -> File? {
+    static public func Open(_ name: String, mode: String) -> File? {
         if let stream = InputStream(fileAtPath: name), mode == "r" {
             stream.open()
             if stream.hasBytesAvailable {
@@ -74,9 +70,9 @@ class Files {
         return nil
     }
     
-    static func Tell(_ f: File) -> Int { return f.pos }
+    static public func Tell(_ f: File) -> Int { f.pos }
     
-    static func DumpToC (_ f: File) -> Bool {
+    static public func DumpToC (_ f: File) -> Bool {
         if let os = f.fout, f.inMemory {
             if let buffer = os.property(forKey: Stream.PropertyKey.dataWrittenToMemoryStreamKey) as? Data {
                 let fname = f.name.replacingOccurrences(of: ".lola", with: ".c")
@@ -88,25 +84,25 @@ class Files {
                 
                 // Output the file header
                 let cname = f.name.replacingOccurrences(of: ".lola", with: "")
-                WriteString(fh!, s: "const unsigned char \(cname)[] = { ")
+                WriteString(fh!, "const unsigned char \(cname)[] = { ")
                 
                 for cnt in 0..<buffer.count {
                     let s = String(format: "0x%02X, ", bytes[cnt])
                     if cnt % 16 == 0 {
                         let addr = String(format: "0x%04X", cnt)
-                        WriteString(fh!, s: "\n\t/* \(addr) */ ")
+                        WriteString(fh!, "\n\t/* \(addr) */ ")
                     }
-                    WriteString(fh!, s: s)
+                    WriteString(fh!, s)
                 }
                 
-                WriteString(fh!, s: "\n} \n")
+                WriteString(fh!, "\n} \n")
                 Close(fh!)
             }
         }
         return false
     }
     
-    static func Close(_ f: File) {
+    static public func Close(_ f: File) {
         f.fin?.close()
         f.fout?.close()
     }

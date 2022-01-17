@@ -30,7 +30,7 @@ public extension String {
 	
 	// Extensions to make it easier to work with C-style strings
 	
-    public subscript (n: Int) -> Character {
+    subscript (n: Int) -> Character {
         get {
             let s = self.index(self.startIndex, offsetBy: n)
             if s < self.endIndex {
@@ -47,19 +47,19 @@ public extension String {
         }
     }
 	
-	public func stringByTrimmingTrailingCharactersInSet (_ characterSet: CharacterSet) -> String {
+	func stringByTrimmingTrailingCharactersInSet (_ characterSet: CharacterSet) -> String {
 		if let rangeOfLastWantedCharacter = self.rangeOfCharacter(from: characterSet.inverted, options:.backwards) {
 			return String(self[...rangeOfLastWantedCharacter.upperBound])
 		}
 		return ""
 	}
     
-    public func substring (_ from: Int, _ length: Int) -> String {
+    func substring (_ from: Int, _ length: Int) -> String {
         let str : NSString = self as NSString
         return str.substring(with: NSMakeRange(from, length))
     }
     
-    public func trim() -> String {
+    func trim() -> String {
         return self.trimmingCharacters(in: CharacterSet.whitespaces)
     }
 	
@@ -67,18 +67,18 @@ public extension String {
 
 public extension Character {
 
-    public var unicodeValue : Int { return Int(unicodeScalar.value) }
-    public var unicodeScalar : UnicodeScalar { return String(self).unicodeScalars.first ?? "\0" }
+    var unicodeValue : Int { return Int(unicodeScalar.value) }
+    var unicodeScalar : UnicodeScalar { return String(self).unicodeScalars.first ?? "\0" }
     
-    public func isLetter() -> Bool { return CharacterSet.letters.contains(self.unicodeScalar) }
-    public func isAlphanumeric() -> Bool { return CharacterSet.alphanumerics.contains(self.unicodeScalar) }
+    func isLetter() -> Bool { return CharacterSet.letters.contains(self.unicodeScalar) }
+    func isAlphanumeric() -> Bool { return CharacterSet.alphanumerics.contains(self.unicodeScalar) }
     
-    public var lowercase : Character { return String(self).lowercased().first! }
-    public var uppercase : Character { return String(self).uppercased().first! }
+    var lowercase : Character { return String(self).lowercased().first! }
+    var uppercase : Character { return String(self).uppercased().first! }
 	
     init(_ int: Int) { self = Character(UnicodeScalar(int) ?? UnicodeScalar(0)!) }
 	
-    public func add (_ n: Int) -> Character { return Character(self.unicodeValue + n) }
+    func add (_ n: Int) -> Character { return Character(self.unicodeValue + n) }
 	
 }
 

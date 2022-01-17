@@ -2,244 +2,70 @@ import Foundation
 
 class LSB {
     
-    /* Lola System Base   MG 03.10.15, NW 25.2.95 / 16.4.96 / 21.10.97 */
+    /* Lola System Base   MG 16.01.22, NW 25.2.95 / 16.4.96 / 21.10.97 */
+    public static let bit = 0; public static let array = 1; public static let unit = 2;   /* type forms */
+      
+    /* tags in output */
+    public static let const = 1; public static let typ = 2; public static let _var = 3; public static let lit = 4;
+    public static let sel = 7; public static let range = 8; public static let cons = 9;
+    public static let repl = 10; public static let not = 11; public static let and = 12;
+    public static let mul = 13; public static let div = 14; public static let or = 15;
+    public static let xor = 16; public static let add = 17; public static let sub = 18;
+    public static let eql = 20; public static let neq = 21; public static let lss = 22;
+    public static let geq = 23; public static let leq = 24; public static let gtr = 25;
+    public static let then = 30; public static let _else = 31; public static let ts = 32;
+    public static let next = 33;
 
-	let NameLen = 32
-    static let black : SHORTINT = 5; static let grey : SHORTINT = 4  /* node values used in loop search */
-    
-    typealias SHORTINT = Int8
-    typealias BOOLEAN = Bool
-    typealias INTEGER = Int
-		
-    /* function codes */
-    static let bit : SHORTINT = 0; static let ts : SHORTINT  = 1; static let oc : SHORTINT = 2;
-    static let integer : SHORTINT = 3; static let array : SHORTINT = 4; static let record : SHORTINT = 5;
-    static let sect : SHORTINT = 6; static let buf : SHORTINT = 7; static let not : SHORTINT = 8;
-    static let and : SHORTINT = 9; static let or : SHORTINT = 10; static let xor : SHORTINT = 11; static let mux : SHORTINT = 12;
-    static let mux1 : SHORTINT = 13; static let reg : SHORTINT = 14; static let reg1 : SHORTINT = 15;
-    static let latch : SHORTINT = 16; static let sr : SHORTINT = 17; static let tsg : SHORTINT = 18; static let link : SHORTINT = 19
-
-    /*class codes*/
-    static let Var : SHORTINT = 0; static let In : SHORTINT = 1; static let Out: SHORTINT = 2; static let IO : SHORTINT = 3
-
-	typealias Name = String
-
-	/* fct field: bits 0-4: function code, bits 5-7: class code;
-       val field: not used; u,v fields: position data */
-
-    class Signal {
-		var x, y: Signal?
-        var fct = LSB.bit; var val: SHORTINT = 0; var u: SHORTINT = -1; var v: SHORTINT = 0
-    }
-
-    class Variable : Signal {
-		var name = ""
-		var classv = LSB.In
-		var next, dsc: Variable?
+    public class Item {
+        var tag = 0
+        var type: TType!
+        var val = 0, size = 0
+        var a, b: Item!
         
-        init (name: String) {
-            self.name = name
+        init(_ tag:Int=0, _ a:Item! = nil, _ b:Item! = nil) {
+            self.tag = tag; self.a = a; self.b = b; self.val = b?.val ?? 0
         }
-        
-        override init () {}
     }
 
-    static let arrayRecordSet = Set<SHORTINT>(arrayLiteral: array, record)
-	static var org : Variable?
-    static let zero = Variable(name: "'0")
-    static let one = Variable(name: "'1")
-    static let clk = Variable(name: "CK")
-	static var reset: Signal?
-	static var change = false
-	static let opcode = "BTONARX!~*+-:,^:$%|,"
+    public class Object : Item {
+        var next: Object!
+        var name = ""
+        var marked = false
+        
+        init() { super.init() }
+        init(tag:Int, name:String, type:TType!, next:Object!) {
+            super.init(tag)
+            self.next = next; self.name = name
+        }
+    }
 
-	static func Init() {
-        org = nil; reset = nil; clk.x = nil
-	}
-    
-    static func OutString(_ s: String)  { print(s, terminator:"") }
+    public class TType {
+        var len = 0, size: Int = 0; var typobj: Object!
+        init(len:Int=0, size:Int=0) { self.len = len; self.size = size; self.typobj = nil }
+    }
+    public class ArrayType : TType {
+        var eltyp: TType!
+        init(len:Int, size:Int, type:TType) { self.eltyp = type; super.init(len: len, size: size) }
+    }
+    public class UnitType : TType {
+        var firstobj: Object!
+        init() { }
+    }
 
-    static func WriteName (_ v: Variable) {
-		var w: Signal?
-        w = v.y
-        if (w != nil) && (w !== org) { WriteName(w as! Variable); OutString(".") }
-		OutString(v.name)
-	}
+    public static var top : Object = root
+    public static var root : Object = {
+        // create a list of types
+        let word = Object(tag: typ, name: "WORD", type: wordType, next: nil)
+        let byte = Object(tag: typ, name: "BYTE", type: byteType, next: word)
+        return Object(tag: typ, name: "BIT", type: bitType, next: byte)
+    }()
+    public static let bitType = TType(len: 0, size: 1), integer = TType(), string = TType()
+    public static let byteType = ArrayType(len: 8, size: 8, type: bitType),
+                      wordType = ArrayType(len: 32, size: 32, type: bitType)
+    public static var modname: String = ""
 
-    static func This (_ org: Variable, _ name: String) -> Variable? {
-		var v: Variable?; var i, j: INTEGER
-        var id: String
-        v = org.dsc; i = 0; id = ""
-		repeat { j = 0
-			while (name[i] > " ") && (name[i] != ".") { id.append(name[i]); j += 1; i += 1 }
-			while (v != nil) && (v!.name != id) { v = v!.next }
-			if name[i] == "." {
-				if v != nil && arrayRecordSet.contains(v!.fct) {
-                    v = v!.dsc; i += 1
-				} else {
-                    v = nil; break
-				}
-			} else { break
-			}
-		} while true
-		return v
-	}
-
-    static func New (_ f: SHORTINT, _ x: Signal?, _ y: Signal?) -> Signal {
-		let z = Signal()
-        z.fct = f; z.x = x; z.y = y; return z
-	}
-
-    static func NewVar (_ f: SHORTINT, _ val: SHORTINT, _ x: Signal?, _ y: Signal?, _ next: Variable?, _ name: String) -> Variable {
-		let v = Variable(name: name)
-        v.fct = f; v.val = val; v.x = x; v.y = y; v.u = -1; v.v = -1
-		v.next = next; return v
-	}
-
-	/*----------------- Simplify --------------------*/
-
-    static func traverse(_ s: inout Signal?) {
-		var z: Signal
-		if s != nil {
-			if s is Variable {
-				if s!.x === zero { s = zero
-				} else if s!.x === one { s = one
-				}
-			} else {
-                traverse(&s!.x); traverse(&s!.y)
-                switch s!.fct {
-                case LSB.not:
-                    if s!.y!.fct == LSB.not { s = s!.y!.y
-                    } else if s!.y === zero { s = one
-                    } else if s!.y === one { s = zero
-                    }
-                case LSB.or:
-                    if s!.x === one { s = one
-                    } else if s!.x === zero { s = s!.y
-                    } else if s!.y === one { s = one
-                    } else if s!.y === zero { s = s!.x
-                    }
-                case LSB.xor:
-                    if s!.x === zero { s = s!.y
-                    } else if s!.x === one {
-                        if s!.y!.fct == LSB.not { s = s!.y!.y } else { s!.fct = LSB.not; s!.x = nil }
-                    } else if s!.y === zero { s = s!.x
-                    } else if s!.y === one {
-                        if s!.x!.fct == LSB.not { s = s!.x!.y } else { s!.fct = LSB.not; s!.y = s!.x; s!.x = nil }
-                    }
-                case LSB.and:
-                    if s!.x === zero { s = zero
-                    } else if s!.x === one { s = s!.y
-                    } else if s!.y === zero { s = zero
-                    } else if s!.y === one { s = s!.x
-                    }
-                case LSB.mux:
-                    if s!.x === zero { s = s!.y!.x
-                    } else if s!.x === one { s = s!.y!.y
-                    } else if s!.y!.x === zero { s!.fct = LSB.and; s!.y = s!.y!.y; traverse(&s)
-                    } else if s!.y!.x === one { s!.fct = LSB.or; z = s!.y!; s!.y = z.y
-                        z.fct = LSB.not; z.x = nil; z.y = s!.x; s!.x = z; traverse(&s)
-                    } else if s!.y!.y === zero { s!.fct = LSB.and; z = s!.y!; s!.y = z.x
-                        z.fct = LSB.not; z.x = nil; z.y = s!.x; s!.x = z; traverse(&s!.x)
-                    } else if s!.y!.y === one { s!.fct = LSB.or; s!.y = s!.y!.x
-                    }
-                case LSB.reg:
-                    if s!.x === zero || s!.x === one || s!.y!.x === zero {
-                        print(" dead reg")
-                    }
-                case LSB.latch:
-                    if s!.x === zero { print(" dead latch")
-                    } else if s!.x === one { s = s!.y
-                    }
-                case LSB.sr:
-                    if s!.x === zero || s!.y === zero { print(" dead SR")
-                    }
-                case LSB.tsg:
-                    if s!.x === zero || s!.x === one {
-                        print(" dead tri-state")
-                    }
-                default: break
-                }
-			}
-		}
-	}
-
-	static func simp(_ v: Variable?) {
-        var v = v
-		if arrayRecordSet.contains(v!.fct) {
-            v = v!.dsc
-			while v != nil { simp(v); v = v!.next }
-		} else if v!.x !== zero && v!.x !== one {
-			if v!.fct == LSB.link { traverse(&v!.x); traverse(&v!.y)
-			} else { traverse(&v!.x)
-				if v!.x === zero || v!.x === one { change = true }
-			}
-		}
-	}
-
-    static func Simplify (_ org: Variable) {
-		var n: INTEGER;
-        n = 0;
-        repeat { n += 1; change = false; simp(org) } while change
-	}
-
-	/*----------------- Find Loops --------------------*/
-
-	static func Loop(_ s: Signal?) {
-		if s != nil {
-			if s is Variable {
-				if s!.val == black { s!.val = grey; Loop(s!.x); s!.val = 0
-				} else if s!.val == grey {
-					WriteName(s as! Variable); print(" in loop")
-				}
-			} else if s!.fct != LSB.reg {
-				Loop(s!.x)
-				if s!.fct != LSB.tsg { Loop(s!.y) }
-			}
-		}
-	}
-
-	static func Loops (_ v: Variable?) {
-        var v = v
-		if arrayRecordSet.contains(v!.fct) {
-            v = v!.dsc
-			while v != nil { Loops(v); v = v!.next }
-		} else if v!.val == black { Loop(v)
-		}
-	}
-
-	/*----------------- Show --------------------*/
-
-    static func ShowTree(_ x: Signal?) {
-        var f: SHORTINT
-		if x != nil {
-			if x is Variable { WriteName(x as! Variable)
-			} else {
-                f = x!.fct; OutString("(")
-				ShowTree(x!.x); OutString("\(opcode[Int(f)])")
-                ShowTree(x!.y); OutString(")")
-			}
-		}
-	}
-
-    static func Show (_ x: Variable?) {
-        var x = x
-		let typ = x!.fct
-		if arrayRecordSet.contains(typ) {
-			x = x!.dsc
-			while x != nil { Show(x); x = x!.next }
-		} else if typ != LSB.integer {
-			WriteName(x!)
-			if x!.u != -1 {
-				OutString(" (\(Int(x!.u) % 0x100))")
-			}
-			if x!.x != nil { OutString(" = "); ShowTree(x!.x) }
-			print("")
-		}
-	}
-
-	/*----------------- Open --------------------*/
-
-	static func Assign (_ v: Variable) { org = v }
+    public static func Register(_ name: String, _ list: Object) {
+        modname = name; top = list
+    } // Register
 
 }

@@ -1,10 +1,9 @@
-MODULE Counter;
-	CONST N := 4;
-	VAR Q, c:[N]BIT;
+MODULE Counter0 (IN clk: BIT; OUT d: [4] BIT);
+  REG R: [4] BIT;
 BEGIN
-	Q.0 := REG(~Q.0); c.0 := Q.0;
-	FOR i := 1 .. N-1 DO
-		Q.i := REG(Q.i - c[i-1]);
-		c.i := Q.i * c[i-1];
-	END
-END Counter.
+  R := {R.3 ^ R.3 & R.2 & R.1 & R.0, (* R.3 *)
+        R.2 ^ R.2 & R.1 & R.0,       (* R.2 *)
+        R.1 ^ R.1 & R.0,             (* R.1 *)
+        ~R.0};                       (* R.0 *)
+  d := R
+END Counter0.

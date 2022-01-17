@@ -1,289 +1,182 @@
 import Foundation
 
-func == (lhs: LSS.Symbols, rhs: LSS.Symbols) -> Bool { return lhs.rawValue == rhs.rawValue }
-func < (lhs: LSS.Symbols, rhs: LSS.Symbols) -> Bool { return lhs.rawValue < rhs.rawValue }
-
 class LSS {
-    /* MG 17.8.2014, NW 16.10.93 / 7.11.96 / 21.10.97 */
-    //	IMPORT Out, Files;
+    /* MG 17.8.2022, NW 16.10.93 / 7.11.96 / 21.10.97 */
     
-    static let IdLen = 32; static let NofKeys = 32; static let NofErrors = 50;
+    static let IdLen = 32; //static let NofKeys = 11
     static let EOL : Character = "\n"; static let CR : Character = "\u{0D}"
     
-    typealias SHORTINT = Int8
-    typealias INTEGER = Int
-    typealias LONGINT = Int
-    typealias CHAR = Character
-    typealias BOOLEAN = Bool
-    
     /* symbols */
-    enum Symbols : SHORTINT, Comparable {
+    public enum Symbols : Int, Comparable {
         case null = 0,
-        not = 1, exp = 2, log = 3,
-        times = 4, div = 5, mod = 6, plus = 7, minus = 8,
-        eql = 10, neq = 11, lss = 12, leq = 13, gtr = 14, geq = 15,
-        period = 18, comma = 19, colon = 20, rparen = 22, rbrak = 23,
-        then = 24, `do` = 25, to = 26,
-        lparen = 27, lbrak = 28, becomes = 29, pos = 30,
-        ident = 31, number = 32, zero = 33, one = 34,
-        reg = 35, latch = 36, sr = 37, mux = 38, bar = 39,
-        semicolon = 40, end = 41, `else` = 42, elsif = 43, `if` = 44, `for` = 45, clock = 46, reset = 47,
-        integer = 48, bit = 49, ts = 50, oc = 51, type = 52, `in` = 53, `inout` = 54,
-        out = 55, spos = 56, const = 57, `var` = 58, begin = 59, `import` = 60, module = 61, eof = 62
+             arrow = 1, times = 2, `div` = 3, and = 4, plus = 5, minus = 6, or = 7, xor = 8,  not = 9,
+             eql = 10, neq = 11, lss = 12, leq = 13, gtr = 14, geq = 15,
+             at = 16, apo = 17, period = 18, comma = 19, colon = 20, rparen = 21, rbrak = 22, rbrace = 23,
+             then = 24, lparen = 26, lbrak = 27, lbrace = 28, repl = 29, becomes = 30,
+             ident = 31, integer = 32, ts = 33, semicolon = 40, end = 41,
+             const = 51, type = 52, reg = 53, `var` = 54, out = 55, `inout` = 56, `in` = 57,
+             begin = 58, module = 59, eof = 60
+        
+        static func == (lhs: Symbols, rhs: Symbols) -> Bool { lhs.rawValue == rhs.rawValue }
+        static func < (lhs: Symbols, rhs: Symbols) -> Bool  { lhs.rawValue < rhs.rawValue }
     }
     
     typealias Ident = String
     
-    static var val: LONGINT = 0
-    static var id: Ident = ""
-    static var error: BOOLEAN = false
-    static var errors: [String] = []
-    static var ch: CHAR = "\0"
-    static var K: INTEGER = 0
-    static var line: INTEGER = 0
-    static var chpos: INTEGER = 0
-    static var errpos: LONGINT = 0
-    static var R = Files.File()
-    static var key: [String] = []
-    static var symno: [Symbols] = []
+    static public var val = 0
+    static public var id: Ident = ""
+    static public var error = false
     
-    static func Mark (_ num: INTEGER) {
-        var fpos: LONGINT;
-        
-        fpos = Files.Tell(R)
+//    static var errors: [String] = []
+    static private var ch: Character = "\0"
+    static private var K: Int = 0
+    static private var line: Int = 0
+    static private var chpos: Int = 0
+    static private var errpos: Int = 0
+    static private var R = File()
+    static private var keySym = [
+        "BEGIN":Symbols.begin, "CONST":.const, "END":.end, "IN":.`in`, "INOUT":.`inout`,
+        "MODULE":.module, "OUT":.out, "REG":.reg, "TYPE":.type, "VAR":.`var`, "TS":.ts
+    ]
+    
+    static public func mark (_ errorString:String) {
+        let fpos = Files1.Tell(R)
         if fpos > errpos+2 {
-            print("*** ERROR: \(errors[num])")
+            print("*** ERROR: \(errorString)")
             print("    Line = \(line); pos = \(chpos)")
             print("")
         }
         errpos = fpos; error = true
-    } // Mark
+    } // mark
     
-    static func Read () {
-        if Files.Eof(R) { ch = "\0"; return }
-        ch = Files.ReadChar(&R); chpos += 1
-        if (ch == EOL) { line += 1; chpos = 1 }
+    static private func Read (_ ch: inout Character) {
+        if Files1.Eof(R) { ch = "\0"; return }
+        ch = Files1.ReadChar(&R); chpos += 1
+        if ch == EOL { line += 1; chpos = 1 }
     } // Read
     
-    static func Get (_ sym: inout Symbols) {
-        
-        func Ident() {
-            var i: INTEGER
-            i = 0; id = ""
-            repeat {
-                if i < IdLen { id.append(ch); i += 1 }
-                Read()
-            } while !( (ch < "0") || (ch > "9") && (ch.uppercase < "A") || (ch.uppercase > "Z"))
-            if ch == "'" {
-                if i < IdLen { id.append(ch); i += 1 }
-                Read()
-            } // ;
-            if i == IdLen {
-                Mark(2)
-            }
-            sym = LSS.Symbols.ident
-        } // Ident
-        
-        func SearchKey () {
-            var i, j, m: INTEGER
-            i = 0; j = NofKeys
-            while i < j {
-                m = (i + j) / 2
-                if key[m] < id { i = m+1 } else { j = m }
-            }
-            if key[j] == id { sym = symno[i] }
-        } // SearchKey
-        
-        func Number () {
-            val = 0; sym = LSS.Symbols.number
-            repeat {
-                if val <= (LONGINT.max - ch.unicodeValue + Character("0").unicodeValue) / 10 {
-                    val = 10 * val + ch.unicodeValue - Character("0").unicodeValue
-                } else { Mark(7); val = 0
-                }
-                Read()
-            } while !(ch < "0" || ch > "9")
-        } // Number
-        
-        func comment () {
-            Read()
-            repeat {
-                repeat {
-                    while ch == "(" { Read();
-                        if ch == "*" { comment() }
-                    }
-                    if ch == "*" { Read(); break }
-                    if Files.Eof(R) { break }
-                    Read()
-                } while true
-                if ch == ")" { Read(); break }
-                if Files.Eof(R) { Mark(8); break }
-            } while true
-        } // comment
-        
-        while ch <= " " && !Files.Eof(R) { Read() }
-        switch ch {
-        case "'":
-            Read()
-            if ch == "0" {
-                sym = LSS.Symbols.zero
-            } else {
-                sym = LSS.Symbols.one;
-                if ch != "1" { Mark(9) }
-            }
-            Read()
-        case "*":
-            Read(); sym = LSS.Symbols.times
-        case "+":
-            Read(); sym = LSS.Symbols.plus
-        case "-":
-            Read()
-            if ch == ">" { Read(); sym = LSS.Symbols.bar } else { sym = LSS.Symbols.minus }
-        case "=":
-            Read(); sym = LSS.Symbols.eql
-        case "#":
-            Read(); sym = LSS.Symbols.neq
-        case "<":
-            Read()
-            if ch == "=" { Read(); sym = LSS.Symbols.leq } else { sym = LSS.Symbols.lss }
-        case ">":
-            Read();
-            if ch == "=" { Read(); sym = LSS.Symbols.geq } else { sym = LSS.Symbols.gtr }
-        case ";":
-            Read(); sym = LSS.Symbols.semicolon
-        case ",":
-            Read(); sym = LSS.Symbols.comma
-        case ":":
-            Read();
-            if ch == "=" { Read(); sym = LSS.Symbols.becomes
-            } else if  ch == ":" { Read(); sym = LSS.Symbols.pos
-            } else { sym = LSS.Symbols.colon
-            }
-        case "." :
-            Read();
-            if ch == "." { Read(); sym = LSS.Symbols.to } else { sym = LSS.Symbols.period }
-        case "/":
-            Read(); sym = LSS.Symbols.div
-        case  "(":
-            Read();
-            if ch == "*" { comment(); Get(&sym) } else { sym = LSS.Symbols.lparen }
-        case ")":
-            Read(); sym = LSS.Symbols.rparen
-        case "[":
-            Read(); sym = LSS.Symbols.lbrak
-        case "]":
-            Read(); sym = LSS.Symbols.rbrak
-        case  "^":
-            Read(); sym = LSS.Symbols.null
-        case "0"..."9":
-            Number()
-        case "A"..."Z":
-            Ident(); SearchKey()
-        case "a"..."z":
-            Ident()
-        case  "|":
-            Read(); sym = LSS.Symbols.bar
-        case "~":
-            Read(); sym = LSS.Symbols.not
-        default:
-            Read(); sym = LSS.Symbols.null
+    static private func identifier(_ sym: inout Symbols) {
+        id = ""
+        repeat {
+            if id.count < IdLen { id.append(ch) }
+            Read(&ch)
+        } while (ch >= "0") && (ch <= "9") || (ch >= "A") && (ch <= "Z") || (ch >= "a") && (ch <= "z")
+        if ch == "'" {
+            if id.count < IdLen { id.append(ch) }
+            Read(&ch)
         }
+        if id.count == IdLen { mark("ident too long") }
+        sym = keySym[id] ?? .ident
+    } // identifier
+    
+    static private func number (_ sym: inout Symbols) {
+        var i, k, h, n, d: Int
+        var hex = false
+        var dig = [Int](repeating: 0, count: 16)
+        sym = .integer; i = 0; k = 0; n = 0
+        repeat {
+            if n < 16 {
+                d = Int(ch.asciiValue! - Character("0").asciiValue!)
+                if d >= 10 { hex = true ; d = d - 7 }
+                dig[n] = d; n+=1
+            }  else {
+                mark("too many digits"); n = 0
+            }
+            Read(&ch)
+        } while (ch >= "0") && (ch <= "9") || (ch >= "A") && (ch <= "F")
+        if ch == "H" { /* hex */
+            repeat {
+                h = dig[i]; k = k*0x10 + h; i+=1 /* no overflow check */
+            } while i != n;
+            Read(&ch)
+        }  else {
+            if hex { mark("illegal hex digit") }
+            repeat { k = k*10 + dig[i]; i+=1 } while i != n
+        }
+        val = k
+    } // number
+    
+    static private func comment () {
+        Read(&ch);
+        repeat {
+            while ch != "\0" && ch != "*" {
+                if ch == "(" {
+                    Read(&ch);
+                    if ch == "*" { comment() }
+                } else {
+                    Read(&ch)
+                }
+            }
+            while ch == "*" { Read(&ch) }
+        } while (ch != ")") && ch != "\0"
+        if ch != "\0" { Read(&ch) } else { mark("comment not terminated") }
+    } // comment
+    
+    static func Get (_ sym: inout Symbols) {
+        repeat {
+            while ch != "\0" && (ch <= " ") { Read(&ch) }
+            if ch == "\0" { sym = .eof }
+            else if ch < "A" {
+                if ch < "0" {
+                    if ch == "!" { Read(&ch); sym = .repl }
+                    else if ch == "#" { Read(&ch); sym = .neq }
+                    else if ch == "$" { Read(&ch); sym = .null }
+                    else if ch == "&" { Read(&ch); sym = .and }
+                    else if ch == "'" { Read(&ch); sym = .apo }
+                    else if ch == "(" { Read(&ch)
+                        if ch == "*" { sym = .null; comment() } else { sym = .lparen } }
+                    else if ch == ")" { Read(&ch); sym = .rparen }
+                    else if ch == "*" { Read(&ch); sym = .times }
+                    else if ch == "+" { Read(&ch); sym = .plus }
+                    else if ch == "," { Read(&ch); sym = .comma }
+                    else if ch == "-" { Read(&ch)
+                        if ch == ">" { Read(&ch); sym = .`then` } else { sym = .minus } }
+                    else if ch == "." { Read(&ch); sym = .period }
+                    else if ch == "/" { Read(&ch); sym = .`div` }
+                    else { sym = .null }
+                }
+                else if ch <= "9" { number(&sym) }
+                else if ch == ":" { Read(&ch)
+                    if ch == "=" { Read(&ch); sym = .becomes } else { sym = .colon } }
+                else if ch == ";" { Read(&ch); sym = .semicolon }
+                else if ch == "<" { Read(&ch)
+                    if ch == "=" { Read(&ch); sym = .leq } else { sym = .lss } }
+                else if ch == "=" { Read(&ch); sym = .eql }
+                else if ch == ">" { Read(&ch)
+                    if ch == "=" { Read(&ch); sym = .geq } else { sym = .gtr } }
+                else if ch == "?" { Read(&ch); sym = .`then` }
+                else if ch == "@" { Read(&ch); sym = .at }
+                else { sym = .null }
+            }
+            else if ch <= "Z" { identifier(&sym) }
+            else if ch < "a" {
+                if ch == "[" { Read(&ch); sym = .lbrak }
+                else if ch == "]" { Read(&ch); sym = .rbrak }
+                else if ch == "^" { Read(&ch); sym = .xor }
+                else { sym = .null }
+            }
+            else if ch <= "z" { identifier(&sym) }
+            else if ch <= "{" { Read(&ch); sym = .lbrace }
+            else if ch <= "|" { Read(&ch); sym = .or }
+            else if ch <= "}" { Read(&ch); sym = .rbrace }
+            else if ch <= "~" { Read(&ch); sym = .not }
+            else { sym = .null }
+        } while sym != .eof
     } // Get
 
     static func Init (_ fname: String) {
         error = false; errpos = 0; chpos = 1; line = 1
-        if let file = Files.Open(fname, mode:"r") { R = file }
+        if let file = Files1.Open(fname, mode:"r") { R = file }
         else { print(""); print("Couldn't open \(fname)!") }
-        Read()
-        
-        K = 0
-        Enter("BEGIN", LSS.Symbols.begin)
-        Enter("BIT", LSS.Symbols.bit)
-        Enter("CLOCK", LSS.Symbols.clock)
-        Enter("CONST", LSS.Symbols.const)
-        Enter("DIV", LSS.Symbols.div)
-        Enter("DO", LSS.Symbols.do)
-        Enter("ELSE", LSS.Symbols.else)
-        Enter("ELSIF", LSS.Symbols.elsif)
-        Enter("END", LSS.Symbols.end)
-        Enter("EXP", LSS.Symbols.exp)
-        Enter("FOR", LSS.Symbols.for)
-        Enter("IF", LSS.Symbols.if)
-        Enter("IMPORT", LSS.Symbols.import)
-        Enter("IN", LSS.Symbols.in)
-        Enter("INOUT", LSS.Symbols.inout)
-        Enter("LATCH", LSS.Symbols.latch)
-        Enter("LOG", LSS.Symbols.log)
-        Enter("MOD", LSS.Symbols.mod)
-        Enter("MODULE", LSS.Symbols.module)
-        Enter("MUX", LSS.Symbols.mux)
-        Enter("OC", LSS.Symbols.oc)
-        Enter("OUT", LSS.Symbols.out)
-        Enter("POS", LSS.Symbols.spos)
-        Enter("REG", LSS.Symbols.reg)
-        Enter("RESET", LSS.Symbols.reset)
-        Enter("SR", LSS.Symbols.sr)
-        Enter("THEN", LSS.Symbols.then)
-        Enter("TO", LSS.Symbols.to)
-        Enter("TS", LSS.Symbols.ts)
-        Enter("TYPE", LSS.Symbols.type)
-        Enter("VAR", LSS.Symbols.var)
-        key.append("~ ")
-        
-        AddError(0, "undefined identifier")
-        AddError(1, "multiple definition of identifier")
-        AddError(2, "identifier too long")
-        AddError(3, "field identifier not visible")
-        AddError(4, "identifier mismatch")
-        AddError(5, "field identifier undefined")
-        AddError(6, "exponent base not 2")
-        AddError(7, "number too large")
-        AddError(8, "non-terminated comment")
-        AddError(9, "illegal constant")
-        
-        AddError(10, "identifier expected")
-        AddError(11, "MODULE expected")
-        AddError(12, ". must be followed by identifier or numbe")
-        AddError(14, "( expected")
-        AddError(15, ") expected")
-        AddError(16, "] expected")
-        AddError(17, "bad factor")
-        AddError(18, "relation expected")
-        AddError(19, ", expected")
-        AddError(20, ": expected")
-        AddError(21, "= or ( expected")
-        AddError(22, "{ expected")
-        AddError(23, ".. expected")
-        AddError(24, "; expected")
-        AddError(25, ". expected")
-        AddError(26, "} // expected")
-        AddError(27, "{ expected")
-        AddError(28, "BIT, TS, OC, or identifier expected")
-        AddError(29, "= expected")
-        
-        AddError(32, "indexed variable is not an array")
-        AddError(34, ". is not preceded by a record or an array variable")
-        AddError(35, "too few actual parameters")
-        AddError(36, "too many actual parameters")
-        AddError(37, "record type expected")
-        AddError(38, "expression is not a constant")
-        AddError(39, "integer expression expected")
-        AddError(40, "parameter type mismatch")
-        AddError(42, "index is not an integer")
-        AddError(43, "index out of range")
-        AddError(44, "incompatible types")
-        AddError(46, "illegal assignment, y not of type BIT")
-        AddError(47, "illegal assignment to input")
-        AddError(48, "illegal bus assignment")
-        AddError(49, "illegal TS-assignment to a non-bus")
+        // Read(&ch)
     } // Init
     
-    static func Enter(_ word: String, _ val: Symbols) {
-       key.append(word); symno.append(val)
-    } // Enter;
+//    static func Enter(_ word: String, _ val: Symbols) {
+//       key.append(word); symno.append(val)
+//    } // Enter;
     
-    static func AddError(_ pos: INTEGER, _ str: String) {
-        errors.append(str)
-    } // AddError;
+//    static func AddError(_ pos: Int, _ str: String) {
+//        errors.append(str)
+//    } // AddError;
 
 } // LSS.
