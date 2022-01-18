@@ -7,14 +7,11 @@ class LSC {
     typealias GetObject =  (_ x: inout LSB.Object) -> ()
     typealias Object = LSB.Object
     
-    static var sym: LSS.Symbols = .null
-    static var err: Bool = false
+    static var sym = LSS.Symbols.null
+    static var err = false
     static var top = LSB.Object()
     static var bot = LSB.root
     static var undef = LSB.Object(tag: 2, name: "", type: LSB.bitType, next: nil)
-    static var factor: GetItem = factor0
-    static var expression: GetItem! = expression0
-    static var Unit: GetObject! = Unit0
     
     static func Err(_ n: Int) {
         LSS.mark("type error"); print(n)
@@ -89,7 +86,7 @@ class LSC {
         }
     } // CheckTypes
     
-    static func selector(_ x: inout LSB.Item) {
+    static func selector(_ x: inout LSB.Item!) {
         var y, z: LSB.Item!
         var eltyp: LSB.TType; var len, kind: Int;
         
@@ -114,7 +111,7 @@ class LSC {
         }
     } // } selector;
         
-    static func elem(_ x: inout LSB.Item, _ len: inout Int) {
+    static func elem(_ x: inout LSB.Item!, _ len: inout Int) {
         var y: LSB.Item; var m:Int, n:Int = 0
         expression(&x);
         if (x.type === LSB.integer) || (x.type === LSB.string)  { m = x.size } else {m = x.type.size }
@@ -128,7 +125,7 @@ class LSC {
         len = m*n
     } // } elem;
 
-    static func constructor(_ x: inout LSB.Item) {
+    static func constructor(_ x: inout LSB.Item!) {
         var y: LSB.Item!; var n = 0, len = 0
         elem(&x, &len);
         while sym == LSS.Symbols.comma {
@@ -138,7 +135,7 @@ class LSC {
         if sym == LSS.Symbols.rbrace { LSS.Get(&sym) } else { LSS.mark("rbrace ?") }
     } //constructor;
 
-    static func factor0(_ x: inout LSB.Item) {
+    static func factor(_ x: inout LSB.Item!) {
         var y: LSB.Item
         var n, len: Int
         
@@ -170,7 +167,7 @@ class LSC {
         }
     } //factor0;
 
-    static func term(_ x: inout LSB.Item) {
+    static func term(_ x: inout LSB.Item!) {
         var y, z: LSB.Item!; var op: Int = 0
         factor(&x);
         while (sym >= LSS.Symbols.times) && (sym <= LSS.Symbols.and) {
@@ -182,7 +179,7 @@ class LSC {
         }
     } //term;
     
-    static func SimpleExpression(_ x: inout LSB.Item) {
+    static func SimpleExpression(_ x: inout LSB.Item!) {
         var y, z: LSB.Item!; var op: Int = 0
         
         if sym == LSS.Symbols.minus  { LSS.Get(&sym); term(&y);
@@ -202,7 +199,7 @@ class LSC {
         }
     } //SimpleExpression;
 
-    static func UncondExpression(_ x: inout LSB.Item) {
+    static func UncondExpression(_ x: inout LSB.Item!) {
         var y, z: LSB.Item!; var rel: Int;
         SimpleExpression(&x);
         if (sym >= LSS.Symbols.eql) && (sym <= LSS.Symbols.geq)  {
@@ -218,7 +215,7 @@ class LSC {
         }
     } //UncondExpression;
 
-    static func expression0(_ x: inout LSB.Item) {
+    static func expression(_ x: inout LSB.Item!) {
         var y, z, w: LSB.Item!
         UncondExpression(&x);
         if sym == LSS.Symbols.then  {
@@ -230,7 +227,7 @@ class LSC {
             } else { LSS.mark("colon ?")
             }
         }
-    } //expression0;
+    } //expression;
 
     static func CheckAssign(_ x: LSB.Item, _ y:LSB.Item) {
         var xtyp, ytyp: LSB.TType;
@@ -350,15 +347,15 @@ class LSC {
         }
     } //ConstDeclaration;
     
-    static func Type0(_ type: inout LSB.TType) {
+    static func Type0(_ type: inout LSB.TType!) {
         var obj: LSB.Object!; var len: Int;
         var eltyp: LSB.TType!; var arrtyp: LSB.ArrayType;
         len = 1;
-        if sym == LSS.Symbols.lbrak  { /*array*/ LSS.Get(&sym);
-            if sym == LSS.Symbols.integer  { len = LSS.val; LSS.Get(&sym)
-            } else if sym == LSS.Symbols.ident  { obj = ThisObj(LSS.id); len = obj.val
-            }
-            if sym == LSS.Symbols.rbrak  { LSS.Get(&sym) } else {LSS.mark("rbrak ?") }
+        if sym == LSS.Symbols.lbrak  {
+            /*array*/ LSS.Get(&sym);
+            if sym == LSS.Symbols.integer { len = LSS.val; LSS.Get(&sym) }
+            else if sym == LSS.Symbols.ident { obj = ThisObj(LSS.id); len = obj.val }
+            if sym == LSS.Symbols.rbrak { LSS.Get(&sym) } else { LSS.mark("rbrak ?") }
             Type0(&eltyp); arrtyp=LSB.ArrayType(len: len, size: eltyp.size * len, type: eltyp)
             type = arrtyp
         } else if sym == LSS.Symbols.ident  {
@@ -367,14 +364,15 @@ class LSC {
                 if obj.tag == LSB.typ  { type = obj.type } else { LSS.mark("not a type"); type = LSB.bitType }
             } else { LSS.mark("type ?")
             }
-        } else { type = LSB.bitType; LSS.mark("ident or [")
+        } else {
+            type = LSB.bitType; LSS.mark("ident or [")
         }
     } //Type0;
     
     static func TypeDeclaration () {
-        var obj: LSB.Object; var utyp: LSB.UnitType;
+        var obj: LSB.Object; var utyp: LSB.UnitType
         
-        if sym == LSS.Symbols.ident  {
+        if sym == LSS.Symbols.ident {
             obj = NewObj(LSB.typ); LSS.Get(&sym);
             if (sym == LSS.Symbols.becomes) || (sym == LSS.Symbols.eql)  { LSS.Get(&sym) } else {LSS.mark("= ?") }
             if sym == LSS.Symbols.module  {
@@ -391,29 +389,34 @@ class LSC {
         obj = nil
         while sym == LSS.Symbols.ident {
             new = NewObj(LSB._var); new.name = LSS.id; new.val = kind; first = new; LSS.Get(&sym);
-            if sym == LSS.Symbols.comma  { LSS.Get(&sym) } else if sym == LSS.Symbols.ident  { LSS.mark("comma missing") }
+            if sym == LSS.Symbols.comma { LSS.Get(&sym) }
+            else if sym == LSS.Symbols.ident { LSS.mark("comma missing") }
             while sym == LSS.Symbols.ident {
-                new = NewObj(LSB._var); new.name = LSS.id; new.val = kind; LSS.Get(&sym);
-                if sym == LSS.Symbols.comma  { LSS.Get(&sym) } else if sym == LSS.Symbols.ident  { LSS.mark("comma missing") }
+                new = NewObj(LSB._var); new.name = LSS.id; new.val = kind; LSS.Get(&sym)
+                if sym == LSS.Symbols.comma { LSS.Get(&sym) }
+                else if sym == LSS.Symbols.ident { LSS.mark("comma missing") }
             }
-            if sym == LSS.Symbols.colon  {
-                LSS.Get(&sym); Type0(&type); obj = first;
+            if sym == LSS.Symbols.colon {
+                LSS.Get(&sym); Type0(&type); obj = first
                 while obj !== bot { obj.type = type; obj.a = clk; obj = obj.next }
-            } else { LSS.mark("colon ?")
+            } else {
+                LSS.mark("colon ?")
             }
-            if sym == LSS.Symbols.semicolon  { LSS.Get(&sym)
-            } else if sym != LSS.Symbols.rparen  { LSS.mark("semicolon or rparen missing")
-            }
+            if sym == LSS.Symbols.semicolon { LSS.Get(&sym) }
+            else if sym != LSS.Symbols.rparen { LSS.mark("semicolon or rparen missing") }
         }
     } //VarList;
     
     static func ParamList () {
         var kind: Int = 0
-        
-        if sym == LSS.Symbols.in  { LSS.Get(&sym); kind = 6
-        } else if sym == LSS.Symbols.out  { LSS.Get(&sym);
-            if sym == LSS.Symbols.reg  { LSS.Get(&sym); kind = 4 } else {kind = 3 }
-        } else if sym == LSS.Symbols.inout  { LSS.Get(&sym); kind = 5
+        if sym == LSS.Symbols.in {
+            LSS.Get(&sym); kind = 6
+        } else if sym == LSS.Symbols.out  {
+            LSS.Get(&sym)
+            if sym == LSS.Symbols.reg { LSS.Get(&sym); kind = 4 }
+            else { kind = 3 }
+        } else if sym == LSS.Symbols.inout {
+            LSS.Get(&sym); kind = 5
         }
         VarList(kind, nil)
     } //ParamList;
@@ -434,13 +437,14 @@ class LSC {
         }
     } //Traverse;
     
-    static func Unit0(_ locals: inout LSB.Object) {
+    static func Unit(_ locals: inout LSB.Object!) {
         var obj, oldtop: LSB.Object; var kind: Int; var clock: LSB.Item!
         oldtop = top.next; top.next = LSB.root;  /*top is dummy*/
         if sym == LSS.Symbols.lparen  { LSS.Get(&sym) } else { LSS.mark("lparen ?") }
-        while (sym == LSS.Symbols.in) || (sym == LSS.Symbols.out) || (sym == LSS.Symbols.inout) { ParamList() }
-        if sym == LSS.Symbols.rparen  { LSS.Get(&sym) } else { LSS.mark("rparen ?") }
-        if sym == LSS.Symbols.xor /*arrow*/  { LSS.Get(&sym); locals = top.next
+        while sym == LSS.Symbols.in || sym == LSS.Symbols.out || sym == LSS.Symbols.inout { ParamList() }
+        if sym == LSS.Symbols.rparen { LSS.Get(&sym) } else { LSS.mark("rparen ?") }
+        if sym == LSS.Symbols.xor { /*arrow*/
+            LSS.Get(&sym); locals = top.next
         } else {
             if sym == LSS.Symbols.semicolon  { LSS.Get(&sym) } else {LSS.mark("semicolon ?") }
             if sym == LSS.Symbols.const  { LSS.Get(&sym);
@@ -449,11 +453,15 @@ class LSC {
             if sym == LSS.Symbols.type  { LSS.Get(&sym);
                 while sym == LSS.Symbols.ident { TypeDeclaration() }
             }
-            while (sym == LSS.Symbols.var) || (sym == LSS.Symbols.reg) {
-                if sym == LSS.Symbols.var  { LSS.Get(&sym);
+            while sym == LSS.Symbols.var || sym == LSS.Symbols.reg {
+                if sym == LSS.Symbols.var {
+                    LSS.Get(&sym);
                     while sym == LSS.Symbols.ident { VarList(2, nil) }
-                } else {/*reg*/ kind = 0; LSS.Get(&sym);
-                    if sym == LSS.Symbols.lparen  { /*clock*/
+                } else {
+                    /*reg*/
+                    kind = 0; LSS.Get(&sym)
+                    if sym == LSS.Symbols.lparen  {
+                        /*clock*/
                         LSS.Get(&sym); expression(&clock);
                         if clock.type !== LSB.bitType { LSS.mark("clock must be bitType") }
                         if let clk = clock as? LSB.Object, clk.name == "clk" { kind = 1; clock = nil }
@@ -485,16 +493,16 @@ class LSC {
             }
         }
         top.next = oldtop
-    } //Unit0;
+    } //Unit;
     
     static public func Module (_ name : String) {
         var root: LSB.Object!; var modname = ""
         print("compiling Lola: ", terminator: ""); LSS.error = false
-        bot = LSB.root; top.next = bot; LSS.Init(name); LSS.Get(&sym);
+        bot = LSB.root; top.next = bot; LSS.Init(name); LSS.Get(&sym)
         if sym == LSS.Symbols.module  {
-            LSS.Get(&sym);
+            LSS.Get(&sym)
             if sym == LSS.Symbols.ident  {
-                modname = LSS.id; print(LSS.id, terminator: ""); LSS.Get(&sym);
+                modname = LSS.id; print(LSS.id, terminator: ""); LSS.Get(&sym)
                 print()
             } else { LSS.mark("ident ?")
             }

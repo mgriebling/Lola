@@ -32,7 +32,8 @@ class LSP {
             write("["); write(typ.len, 1); write("]"); PrintType(typ.eltyp)
         } else if let _ = typ as? LSB.UnitType {
             write("UnitType "); /* obj = typ.firstobj */ // never used?
-        } else { write("BIT")
+        } else {
+            write("BIT")
         }
     } // PrintType;
     
@@ -45,7 +46,7 @@ class LSP {
             } else {
                 PrintTree(x.a, n+1);
                 while i > 0 { write("  "); i-=1 }
-                if x.tag == LSB.lit { write(x.val, 1) } else { write(C[x.tag]); }
+                if x.tag == LSB.lit { write(x.val, 1) } else { write(C[x.tag]) }
                 writeln()
                 PrintTree(x.b, n+1)
             }
@@ -60,12 +61,14 @@ class LSP {
         } else if obj.tag == LSB.typ {
             if let objType = obj.type as? LSB.UnitType {  /*formal param list*/
                 obj1 = objType.firstobj;
-                write(" BEGIN "); writeln();
+                writeln(" BEGIN ")
                 while (obj1 !== nil) && (obj1 !== LSB.root) { PrintObj(obj1, 0); obj1 = obj1.next }
-                write("END"); writeln()
-            } else { PrintType(obj.type)
+                writeln("END")
+            } else {
+                PrintType(obj.type)
             }
-        } else { /*var*/ write(": ");
+        } else {
+            /*var*/ write(": ");
             if obj.type is LSB.UnitType {
                 write(obj.type.typobj.name);
                 apar = obj.b; write(" [");  /*actual param list*/
@@ -87,8 +90,8 @@ class LSP {
     static public func List() {
         var obj: LSB.Object!
         obj = LSB.top;
-        write("listing "); write(LSB.modname); writeln();
-        while (obj !== LSB.root) && (obj !== nil) { PrintObj(obj, 0); obj = obj.next }
+        write("listing "); write(LSB.modname); writeln()
+        while obj !== LSB.root && obj != nil { PrintObj(obj, 0); obj = obj.next }
     } // List;
     
 }

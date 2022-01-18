@@ -23,30 +23,11 @@ class LSV {
         return C
     }()
 
-    static func Write(_ ch: Character) {
-        Files1.WriteChar(F, ch)
-    } //Write;
-
-    static func WriteLn() {
-        Write("\r\n"); Write("\n")
-    } //WriteLn;
-    
-    static func WriteInt(_ x: Int) {  /* x >= 0 */
-        var d = [Int](); var x = x
-        if x < 0 { Files1.WriteChar(F, "-"); x = -x }
-        repeat { d.append(x % 10); x = x / 10 } while x != 0
-        for digit in d.reversed() { Files1.WriteChar(F, Character(String(digit))) }
-    } //WriteInt;
-    
-    static func WriteHex(_ x: Int) {  /*x >= 0*/
-        var d = [Int](); var x = x
-        repeat { d.append(x % 0x10); x = x / 0x10 } while x != 0 && d.count < 8
-        for digit in d.reversed() {
-            Files1.WriteChar(F, Character(String(digit, radix: 16, uppercase: true)))
-        }
-    } //WriteHex;
-    
+    static func Write(_ ch: Character) { Files1.WriteChar(F, ch) }
+    static func WriteLn() { Write("\r\n") }
+    static func WriteInt(_ x: Int) { WriteString("\(x)") }
     static func WriteString(_ s: String) { Files1.WriteString(F, s) }
+    static func WriteHex(_ x: Int) { WriteString(String(abs(x), radix: 16, uppercase: true)) }
     
     /* ------------------------------- */
     
@@ -224,8 +205,8 @@ class LSV {
         if !outFile.isEmpty {
             print(LSB.modname, " translating to  ", outFile, terminator: "")
             F = Files1.Open(outFile, mode: "w")!
-            WriteString("`timescale 1ns / 1 ps"); nofgen = 0;
-            WriteString("module " + LSB.modname + "(   // translated from Lola")
+            WriteString("`timescale 1ns / 1 ps"); WriteLn(); nofgen = 0
+            WriteString("module " + LSB.modname + "(   // translated from Lola"); WriteLn()
             ObjList0(LSB.top); ObjList1(LSB.top); ObjList2(LSB.top);
             WriteString("endmodule"); WriteLn()
             Files1.Close(F)

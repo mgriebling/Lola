@@ -27,8 +27,7 @@ class LSS {
     static public var id: Ident = ""
     static public var error = false
     
-//    static var errors: [String] = []
-    static private var ch: Character = "\0"
+    static private var ch: Character = " "
     static private var K: Int = 0
     static private var line: Int = 0
     static private var chpos: Int = 0
@@ -70,34 +69,35 @@ class LSS {
     } // identifier
     
     static private func number (_ sym: inout Symbols) {
-        var i, k, h, n, d: Int
+        let maxDigits = 16
+        let zeroASCII = Character("0").asciiValue!
+        let aOffset = Character("A").asciiValue! - zeroASCII - 10
+        var k = 0
         var hex = false
-        var dig = [Int](repeating: 0, count: 16)
-        sym = .integer; i = 0; k = 0; n = 0
+        var dig = [Int](); dig.reserveCapacity(maxDigits)
+        sym = .integer
         repeat {
-            if n < 16 {
-                d = Int(ch.asciiValue! - Character("0").asciiValue!)
-                if d >= 10 { hex = true ; d = d - 7 }
-                dig[n] = d; n+=1
+            if dig.count < maxDigits {
+                var d = Int(ch.asciiValue! - zeroASCII)
+                if d >= 10 { hex = true; d -= Int(aOffset) }
+                dig.append(d)
             }  else {
-                mark("too many digits"); n = 0
+                mark("too many digits"); dig = [Int]()
             }
             Read(&ch)
         } while (ch >= "0") && (ch <= "9") || (ch >= "A") && (ch <= "F")
         if ch == "H" { /* hex */
-            repeat {
-                h = dig[i]; k = k*0x10 + h; i+=1 /* no overflow check */
-            } while i != n;
+            for d in dig { k = k*16 + d } /* no overflow check */
             Read(&ch)
         }  else {
             if hex { mark("illegal hex digit") }
-            repeat { k = k*10 + dig[i]; i+=1 } while i != n
+            for d in dig { k = k*10 + d }
         }
         val = k
     } // number
     
     static private func comment () {
-        Read(&ch);
+        Read(&ch)
         repeat {
             while ch != "\0" && ch != "*" {
                 if ch == "(" {
@@ -112,9 +112,9 @@ class LSS {
         if ch != "\0" { Read(&ch) } else { mark("comment not terminated") }
     } // comment
     
-    static func Get (_ sym: inout Symbols) {
+    static public func Get (_ sym: inout Symbols) {
         repeat {
-            while ch != "\0" && (ch <= " ") { Read(&ch) }
+            while ch != "\0" && ch <= " " { Read(&ch) }
             if ch == "\0" { sym = .eof }
             else if ch < "A" {
                 if ch < "0" {
@@ -161,14 +161,16 @@ class LSS {
             else if ch <= "}" { Read(&ch); sym = .rbrace }
             else if ch <= "~" { Read(&ch); sym = .not }
             else { sym = .null }
-        } while sym != .eof
+        } while sym == .null
     } // Get
 
-    static func Init (_ fname: String) {
+    static public func Init (_ fname: String) {
         error = false; errpos = 0; chpos = 1; line = 1
-        if let file = Files1.Open(fname, mode:"r") { R = file }
-        else { print(""); print("Couldn't open \(fname)!") }
-        // Read(&ch)
+        print("Open File \(fname)")
+        if let file = Files1.Open(fname, mode:"r") {
+            R = file; Read(&ch)
+            print("Read ch = '\(ch)'")
+        } else { print(""); print("Couldn't open \(fname)!") }
     } // Init
     
 //    static func Enter(_ word: String, _ val: Symbols) {

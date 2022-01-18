@@ -1,20 +1,21 @@
 import Foundation
 
+
+/// Lola System Base   NW 25.2.95 / 16.4.96 / 21.10.97
 class LSB {
-    
-    /* Lola System Base   MG 16.01.22, NW 25.2.95 / 16.4.96 / 21.10.97 */
-    public static let bit = 0; public static let array = 1; public static let unit = 2;   /* type forms */
+    /* type forms */
+    public static let bit = 0; public static let array = 1; public static let unit = 2
       
     /* tags in output */
-    public static let const = 1; public static let typ = 2; public static let _var = 3; public static let lit = 4;
-    public static let sel = 7; public static let range = 8; public static let cons = 9;
-    public static let repl = 10; public static let not = 11; public static let and = 12;
-    public static let mul = 13; public static let div = 14; public static let or = 15;
-    public static let xor = 16; public static let add = 17; public static let sub = 18;
-    public static let eql = 20; public static let neq = 21; public static let lss = 22;
-    public static let geq = 23; public static let leq = 24; public static let gtr = 25;
-    public static let then = 30; public static let _else = 31; public static let ts = 32;
-    public static let next = 33;
+    public static let const = 1; public static let typ = 2; public static let _var = 3;
+    public static let lit = 4; public static let sel = 7; public static let range = 8;
+    public static let cons = 9; public static let repl = 10; public static let not = 11;
+    public static let and = 12; public static let mul = 13; public static let div = 14;
+    public static let or = 15; public static let xor = 16; public static let add = 17;
+    public static let sub = 18; public static let eql = 20; public static let neq = 21;
+    public static let lss = 22; public static let geq = 23; public static let leq = 24;
+    public static let gtr = 25; public static let then = 30; public static let _else = 31;
+    public static let ts = 32; public static let next = 33;
 
     public class Item {
         var tag = 0
@@ -34,13 +35,13 @@ class LSB {
         
         init() { super.init() }
         init(tag:Int, name:String, type:TType!, next:Object!) {
-            super.init(tag)
+            super.init(tag); self.type = type
             self.next = next; self.name = name
         }
     }
 
     public class TType {
-        var len = 0, size: Int = 0; var typobj: Object!
+        var len = 0, size = 0; var typobj: Object!
         init(len:Int=0, size:Int=0) { self.len = len; self.size = size; self.typobj = nil }
     }
     public class ArrayType : TType {
@@ -59,7 +60,9 @@ class LSB {
         let byte = Object(tag: typ, name: "BYTE", type: byteType, next: word)
         return Object(tag: typ, name: "BIT", type: bitType, next: byte)
     }()
-    public static let bitType = TType(len: 0, size: 1), integer = TType(), string = TType()
+    public static let bitType = TType(len: 0, size: 1),
+                      integer = TType(),
+                      string = TType()
     public static let byteType = ArrayType(len: 8, size: 8, type: bitType),
                       wordType = ArrayType(len: 32, size: 32, type: bitType)
     public static var modname: String = ""

@@ -1,5 +1,5 @@
 MODULE Counter0 (IN clk: BIT; OUT d: [4] BIT);
-  REG R: [4] BIT;
+  REG (clk) R: [4] BIT;
 BEGIN
   R := {R.3 ^ R.3 & R.2 & R.1 & R.0, (* R.3 *)
         R.2 ^ R.2 & R.1 & R.0,       (* R.2 *)

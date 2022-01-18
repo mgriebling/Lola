@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 46;
+	objectVersion = 54;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -39,6 +39,8 @@
 		2F2057751BBF0161006E9E61 /* LSB.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LSB.swift; sourceTree = "<group>"; };
 		4727028527959A6400EBEC0E /* LSP.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LSP.swift; sourceTree = "<group>"; };
 		472702872795A44600EBEC0E /* LSV.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LSV.swift; sourceTree = "<group>"; };
+		4727028B27960F3C00EBEC0E /* LolaCompiler.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = LolaCompiler.pdf; sourceTree = "<group>"; };
+		4727028C27960F4400EBEC0E /* Lola2.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = Lola2.pdf; sourceTree = "<group>"; };
 		479ACEE91BBFE4C3000E68D5 /* String+Char.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "String+Char.swift"; sourceTree = "<group>"; };
 		479ACEEB1BBFE523000E68D5 /* Files.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Files.swift; sourceTree = "<group>"; };
 		479ACEED1BBFFA91000E68D5 /* LSC.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LSC.swift; sourceTree = "<group>"; };
@@ -86,6 +88,8 @@
 				4727028527959A6400EBEC0E /* LSP.swift */,
 				479ACEED1BBFFA91000E68D5 /* LSC.swift */,
 				479ACEEB1BBFE523000E68D5 /* Files.swift */,
+				4727028C27960F4400EBEC0E /* Lola2.pdf */,
+				4727028B27960F3C00EBEC0E /* LolaCompiler.pdf */,
 				479ACEE91BBFE4C3000E68D5 /* String+Char.swift */,
 				47C3C0301BC29E3F00E6DA54 /* Test Inputs */,
 			);
@@ -137,7 +141,7 @@
 				};
 			};
 			buildConfigurationList = 2F2057661BBF0132006E9E61 /* Build configuration list for PBXProject "Lola" */;
-			compatibilityVersion = "Xcode 3.2";
+			compatibilityVersion = "Xcode 12.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -226,6 +230,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
@@ -273,7 +278,9 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.10;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = macosx;
-				SWIFT_OPTIMIZATION_LEVEL = "-Owholemodule";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
 		};
@@ -282,7 +289,11 @@
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "-";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ENFORCE_EXCLUSIVE_ACCESS = none;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -296,7 +307,11 @@
 			buildSettings = {
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_IDENTITY = "-";
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/../Frameworks @loader_path/../Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_ENFORCE_EXCLUSIVE_ACCESS = none;
 				SWIFT_SWIFT3_OBJC_INFERENCE = Default;
